@@ -1,0 +1,89 @@
+<div id="chart-growth" class="chart-container"></div>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var chart = echarts.init(document.getElementById('chart-growth'));
+    var starsData = {{ stars_series | safe }};
+    var forksData = {{ forks_series | safe }};
+    var dates = starsData.map(function(d) { return d.date; });
+    var f = "'IBM Plex Mono', monospace";
+    chart.setOption({
+        backgroundColor: 'transparent',
+        tooltip: {
+            trigger: 'axis',
+            backgroundColor: '#1c1c24',
+            borderColor: '#363642',
+            padding: [8, 12],
+            textStyle: { color: '#d4d4dc', fontFamily: f, fontSize: 11 }
+        },
+        legend: {
+            data: ['Stars', 'Forks'],
+            textStyle: { color: '#9090a0', fontFamily: f, fontSize: 10 },
+            top: 0, right: 0,
+            itemWidth: 12, itemHeight: 2
+        },
+        grid: { left: 48, right: 48, top: 28, bottom: 24 },
+        xAxis: {
+            type: 'category',
+            data: dates,
+            axisLine: { lineStyle: { color: '#363642' } },
+            axisLabel: { color: '#9090a0', fontFamily: f, fontSize: 10 },
+            axisTick: { show: false }
+        },
+        yAxis: [
+            {
+                type: 'value',
+                scale: true,
+                boundaryGap: ['10%', '10%'],
+                axisLine: { show: false },
+                axisLabel: { color: '#9090a0', fontFamily: f, fontSize: 10 },
+                splitLine: { lineStyle: { color: '#2a2a36' } }
+            },
+            {
+                type: 'value',
+                scale: true,
+                boundaryGap: ['10%', '10%'],
+                axisLine: { show: false },
+                axisLabel: { color: '#6a6a7a', fontFamily: f, fontSize: 10 },
+                splitLine: { show: false }
+            }
+        ],
+        series: [
+            {
+                name: 'Stars',
+                type: 'line',
+                yAxisIndex: 0,
+                data: starsData.map(function(d) { return d.value; }),
+                smooth: false,
+                showSymbol: starsData.length <= 30,
+                symbolSize: 3,
+                lineStyle: { color: '#eab308', width: 1.5 },
+                itemStyle: { color: '#eab308' },
+                areaStyle: {
+                    color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                        { offset: 0, color: 'rgba(234,179,8,0.25)' },
+                        { offset: 1, color: 'rgba(234,179,8,0.02)' }
+                    ])
+                }
+            },
+            {
+                name: 'Forks',
+                type: 'line',
+                yAxisIndex: 1,
+                data: forksData.map(function(d) { return d.value; }),
+                smooth: false,
+                showSymbol: forksData.length <= 30,
+                symbolSize: 3,
+                lineStyle: { color: '#9090a0', width: 1.5 },
+                itemStyle: { color: '#9090a0' },
+                areaStyle: {
+                    color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                        { offset: 0, color: 'rgba(144,144,160,0.15)' },
+                        { offset: 1, color: 'rgba(144,144,160,0.02)' }
+                    ])
+                }
+            }
+        ]
+    });
+    window.addEventListener('resize', function() { chart.resize(); });
+});
+</script>

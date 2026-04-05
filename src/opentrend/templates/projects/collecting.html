@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}Collecting {{ project.display_name }} — opentrend.dev{% endblock %}
+{% block content %}
+<div class="collecting-page animate-in">
+    <div class="collecting-spinner"></div>
+    <h2>Preparing {{ project.display_name }}</h2>
+    <p class="collecting-sub" id="collecting-flavor"></p>
+    <div id="collecting-status"
+         hx-get="/projects/{{ project.id }}/collecting/status"
+         hx-trigger="every 2s"
+         hx-swap="innerHTML">
+    </div>
+</div>
+<script>
+(function() {
+    var msgs = [
+        "Counting stars...",
+        "Interrogating package managers...",
+        "Fetching forks from the wild...",
+        "Convincing GitHub to share its secrets...",
+        "Rummaging through registries...",
+        "Herding contributors...",
+        "Untangling dependency graphs...",
+        "Peeking at download counters...",
+        "Scanning package repos...",
+        "Collecting all the numbers...",
+        "Crunching fresh data...",
+        "Almost there, probably...",
+    ];
+    var idx = Math.floor(Math.random() * msgs.length);
+    var polls = 0;
+    function update() {
+        var el = document.getElementById('collecting-flavor');
+        if (el) el.textContent = msgs[idx % msgs.length];
+    }
+    update();
+    document.body.addEventListener('htmx:afterSwap', function() {
+        polls++;
+        if (polls % 3 === 0) idx++;
+        update();
+    });
+})();
+</script>
+{% endblock %}

@@ -1,0 +1,194 @@
+{% extends "base.html" %}
+{% block content %}
+{% if user %}
+{# ── Logged-in: project cards ── #}
+<div class="px-8 lg:px-12 xl:px-16 py-8">
+    <div class="flex items-center justify-between mb-6">
+        <h1 class="text-3xl font-semibold text-fg-bright tracking-tight">projects</h1>
+        <a href="/projects/add" class="inline-flex items-center gap-1.5 bg-accent-teal text-bg px-5 py-2.5 rounded text-base font-medium hover:bg-[#7af0de] no-underline transition-colors">+ add</a>
+    </div>
+
+    {% if project_data %}
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+        {% for item in project_data %}
+        <a href="/p/{{ item.project.github_repo }}" class="group relative flex flex-col bg-bg-raised border border-border-subtle rounded-md overflow-hidden no-underline text-fg hover:border-border transition-colors">
+            {# Sparkline background #}
+            <svg class="card-sparkline absolute bottom-0 left-0 right-0 h-3/5 pointer-events-none opacity-15" data-values="{{ item.reach_history }}" viewBox="0 0 200 80" preserveAspectRatio="none"></svg>
+
+            {# Content #}
+            <div class="relative z-10 p-5 pb-4 flex-1 flex flex-col">
+                <div class="flex justify-between items-start mb-1.5">
+                    <span class="font-medium text-fg-bright text-base">{{ item.project.display_name }}</span>
+                    <div class="text-right">
+                        <div class="text-xl xl:text-2xl font-semibold text-accent-teal leading-tight">{{ "{:,}".format(item.reach) }}</div>
+                        <div class="text-[0.55rem] text-fg-faint uppercase tracking-wider">reach</div>
+                    </div>
+                </div>
+                <div class="text-sm text-fg-dim mb-1.5">{{ item.project.github_repo }}</div>
+                {% if item.project.description %}
+                <div class="text-sm text-fg-dim leading-relaxed line-clamp-2 mb-auto">{{ item.project.description }}</div>
+                {% endif %}
+            </div>
+
+            {# Footer stats #}
+            <div class="relative z-10 flex items-center px-5 py-2.5 border-t border-border-subtle text-sm text-fg-dim gap-4">
+                <span><span class="text-fg font-medium">{{ item.stars }}</span> stars</span>
+                <span><span class="text-fg font-medium">{{ item.sources }}</span> pkgs</span>
+                <span><span class="text-fg font-medium">{{ item.downloads }}</span> dl/mo</span>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+    <script>
+    document.querySelectorAll('.card-sparkline').forEach(function(svg) {
+        var values = JSON.parse(svg.dataset.values || '[]');
+        if (values.length < 2) return;
+        var min = Math.min.apply(null, values);
+        var max = Math.max.apply(null, values);
+        var range = max - min || 1;
+        var w = 200, h = 80, pad = 4;
+        var points = values.map(function(v, i) {
+            var x = (i / (values.length - 1)) * w;
+            var y = pad + (1 - (v - min) / range) * (h - pad * 2);
+            return x + ',' + y;
+        });
+        var line = points.join(' L');
+        var area = points.join(' L') + ' L' + w + ',' + h + ' L0,' + h + 'Z';
+        var defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+        defs.innerHTML = '<linearGradient id="spark-g-' + Math.random().toString(36).slice(2) + '" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#5eead4" stop-opacity="0.6"/><stop offset="100%" stop-color="#5eead4" stop-opacity="0"/></linearGradient>';
+        svg.appendChild(defs);
+        var gradId = defs.firstChild.id;
+        var fillPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        fillPath.setAttribute('d', 'M' + area);
+        fillPath.setAttribute('fill', 'url(#' + gradId + ')');
+        svg.appendChild(fillPath);
+        var strokePath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        strokePath.setAttribute('d', 'M' + line);
+        strokePath.setAttribute('fill', 'none');
+        strokePath.setAttribute('stroke', '#5eead4');
+        strokePath.setAttribute('stroke-width', '1.5');
+        svg.appendChild(strokePath);
+    });
+    </script>
+    {% else %}
+    <div class="py-10 text-fg-dim">
+        <p>No projects yet. Add one to start tracking.</p>
+    </div>
+    {% endif %}
+</div>
+
+{% else %}
+{# ── Logged-out: landing page ── #}
+
+<!-- Hero -->
+<div class="text-center pt-24 lg:pt-32 pb-16 px-8">
+    <div class="flex items-center justify-center gap-4 mb-4">
+        <svg class="w-12 h-12 lg:w-16 lg:h-16" viewBox="0 0 32 32" fill="none">
+            <rect x="3" y="3" width="14" height="12" rx="1.5" fill="#5eead4" opacity="0.85"/>
+            <rect x="19" y="3" width="10" height="12" rx="1.5" fill="#5eead4" opacity="0.5"/>
+            <rect x="3" y="17" width="8" height="12" rx="1.5" fill="#5eead4" opacity="0.55"/>
+            <rect x="13" y="17" width="10" height="12" rx="1.5" fill="#5eead4" opacity="0.35"/>
+            <rect x="25" y="17" width="4" height="12" rx="1.5" fill="#5eead4" opacity="0.2"/>
+        </svg>
+        <h1 class="text-4xl lg:text-5xl xl:text-6xl font-semibold tracking-tight">
+            <span class="text-accent-teal">open</span><span class="text-fg-bright">trend</span><span class="text-accent-teal">.dev</span>
+        </h1>
+    </div>
+    <p class="text-fg-dim text-lg lg:text-xl xl:text-2xl mb-10">See how your project spreads.</p>
+    <a href="/auth/login" class="inline-flex items-center gap-2.5 bg-accent-teal text-bg px-6 py-3 rounded text-base font-medium hover:bg-[#7af0de] no-underline transition-colors">
+        <svg viewBox="0 0 16 16" fill="currentColor" class="w-5 h-5"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+        sign in with github
+    </a>
+
+    <!-- Terminal block -->
+    <div class="mt-12 mx-auto max-w-xl lg:max-w-2xl border border-border rounded-md bg-bg-raised p-5 lg:p-6 text-left text-base">
+        <div class="flex items-baseline gap-3 py-1">
+            <span class="w-5 text-center text-green-500">&#9733;</span>
+            <span>github stats</span>
+            <span class="text-fg-faint text-sm ml-auto">stars, forks, issues, PRs</span>
+        </div>
+        <div class="flex items-baseline gap-3 py-1">
+            <span class="w-5 text-center text-blue-500">&#9906;</span>
+            <span>package tracking</span>
+            <span class="text-fg-faint text-sm ml-auto">version &amp; freshness</span>
+        </div>
+        <div class="flex items-baseline gap-3 py-1">
+            <span class="w-5 text-center text-yellow-500">&#8595;</span>
+            <span>downloads</span>
+            <span class="text-fg-faint text-sm ml-auto">daily, weekly, monthly</span>
+        </div>
+        <div class="flex items-baseline gap-3 py-1">
+            <span class="w-5 text-center text-red-500">&#9656;</span>
+            <span>traffic</span>
+            <span class="text-fg-faint text-sm ml-auto">clones, views, referrers</span>
+        </div>
+    </div>
+
+    <!-- Source cloud -->
+    <div class="mt-12 flex flex-wrap gap-2 justify-center max-w-4xl mx-auto">
+        {% for src in ["pypi", "npm", "crates.io", "rubygems", "homebrew", "aur", "nix", "debian", "ubuntu", "arch", "fedora", "alpine", "void", "chocolatey", "scoop"] %}
+        <span class="border border-border-subtle rounded px-3 py-1.5 text-sm text-fg-dim hover:border-border hover:text-fg transition-colors">{{ src }}</span>
+        {% endfor %}
+        <span class="border border-border-subtle rounded px-3 py-1.5 text-sm text-fg-faint">+10 more</span>
+    </div>
+</div>
+
+<!-- How it works -->
+<div class="px-8 lg:px-12 xl:px-16 pt-20 pb-16">
+    <div class="flex items-center gap-4 text-xs font-medium text-fg-faint uppercase tracking-widest mb-10">
+        <span class="flex-1 h-px bg-border-subtle"></span>
+        how it works
+        <span class="flex-1 h-px bg-border-subtle"></span>
+    </div>
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-10 text-center">
+        <div>
+            <div class="inline-flex items-center justify-center w-10 h-10 border border-border rounded-full text-base font-medium text-fg-dim mb-4">1</div>
+            <div class="text-base font-medium text-fg-bright mb-2">sign in</div>
+            <div class="text-sm text-fg-dim leading-relaxed">Connect your GitHub account. One click.</div>
+        </div>
+        <div>
+            <div class="inline-flex items-center justify-center w-10 h-10 border border-border rounded-full text-base font-medium text-fg-dim mb-4">2</div>
+            <div class="text-base font-medium text-fg-bright mb-2">pick a repo</div>
+            <div class="text-sm text-fg-dim leading-relaxed">We auto-discover packages across 25+ sources.</div>
+        </div>
+        <div>
+            <div class="inline-flex items-center justify-center w-10 h-10 border border-border rounded-full text-base font-medium text-fg-dim mb-4">3</div>
+            <div class="text-base font-medium text-fg-bright mb-2">watch it grow</div>
+            <div class="text-sm text-fg-dim leading-relaxed">Daily snapshots track everything over time.</div>
+        </div>
+    </div>
+</div>
+
+<!-- Features -->
+<div class="px-8 lg:px-12 xl:px-16 pt-8 pb-24">
+    <div class="flex items-center gap-4 text-xs font-medium text-fg-faint uppercase tracking-widest mb-10">
+        <span class="flex-1 h-px bg-border-subtle"></span>
+        what you get
+        <span class="flex-1 h-px bg-border-subtle"></span>
+    </div>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        <div class="border border-border-subtle rounded-md bg-bg-raised p-6 hover:border-border transition-colors">
+            <div class="text-xl mb-3 text-green-500">&#9733;</div>
+            <div class="text-base font-medium text-fg-bright mb-2">GitHub Stats Over Time</div>
+            <div class="text-sm text-fg-dim leading-relaxed">Stars, forks, issues, PRs, contributors, releases — tracked daily with weekly deltas.</div>
+        </div>
+        <div class="border border-border-subtle rounded-md bg-bg-raised p-6 hover:border-border transition-colors">
+            <div class="text-xl mb-3 text-blue-500">&#9906;</div>
+            <div class="text-base font-medium text-fg-bright mb-2">Package Distribution</div>
+            <div class="text-sm text-fg-dim leading-relaxed">Auto-discover across 25+ sources. Version freshness at a glance — who's current, who's behind.</div>
+        </div>
+        <div class="border border-border-subtle rounded-md bg-bg-raised p-6 hover:border-border transition-colors">
+            <div class="text-xl mb-3 text-yellow-500">&#8595;</div>
+            <div class="text-base font-medium text-fg-bright mb-2">Download Tracking</div>
+            <div class="text-sm text-fg-dim leading-relaxed">Aggregate downloads across PyPI, npm, crates.io, Homebrew, and more. Daily, weekly, monthly.</div>
+        </div>
+        <div class="border border-border-subtle rounded-md bg-bg-raised p-6 hover:border-border transition-colors">
+            <div class="text-xl mb-3 text-red-500">&#9656;</div>
+            <div class="text-base font-medium text-fg-bright mb-2">Traffic &amp; Referrers</div>
+            <div class="text-sm text-fg-dim leading-relaxed">GitHub clones, page views, and where visitors come from. 14-day rolling windows.</div>
+        </div>
+    </div>
+</div>
+
+{% endif %}
+{% endblock %}

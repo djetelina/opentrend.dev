@@ -1,0 +1,17 @@
+{% if error %}
+<script>
+document.querySelector('.collecting-spinner').style.display = 'none';
+document.querySelector('.collecting-page h2').textContent = 'Collection failed';
+var flavor = document.getElementById('collecting-flavor');
+if (flavor) flavor.textContent = '';
+</script>
+<div style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);border-radius:6px;padding:0.75rem 1rem;margin-top:1rem;font-size:0.85rem;color:#f87171">
+    {{ error }}
+</div>
+<div style="margin-top:1rem;display:flex;gap:1rem">
+    <a href="/p/{{ project.github_repo }}" style="color:var(--fg-dim)">go to dashboard</a>
+    <a href="/projects/{{ project.id }}/edit" style="color:var(--fg-dim)">edit project</a>
+</div>
+{% else %}
+<script>window.location.href = "/p/{{ project.github_repo }}";</script>
+{% endif %}

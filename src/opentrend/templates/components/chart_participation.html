@@ -1,0 +1,51 @@
+<div id="chart-participation" class="chart-container" style="display:flex;align-items:center;justify-content:center"></div>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var el = document.getElementById('chart-participation');
+    var owner = {{ owner_commits_series | safe }};
+    var community = {{ community_commits_series | safe }};
+    var ownerTotal = owner.reduce(function(s, d) { return s + d.value; }, 0);
+    var communityTotal = community.reduce(function(s, d) { return s + d.value; }, 0);
+    if (ownerTotal + communityTotal === 0) { el.closest('.chart-panel').style.display = 'none'; return; }
+    var chart = echarts.init(el);
+    var f = "'IBM Plex Mono', monospace";
+    chart.setOption({
+        backgroundColor: 'transparent',
+        tooltip: {
+            trigger: 'item',
+            backgroundColor: '#1c1c24',
+            borderColor: '#363642',
+            padding: [8, 12],
+            textStyle: { color: '#d4d4dc', fontFamily: f, fontSize: 11 },
+            formatter: function(p) { return p.name + ': ' + p.value.toLocaleString() + ' commits (' + p.percent + '%)'; }
+        },
+        legend: {
+            orient: 'vertical',
+            right: 16, top: 'center',
+            textStyle: { color: '#9090a0', fontFamily: f, fontSize: 11 },
+            itemWidth: 10, itemHeight: 10, itemGap: 8
+        },
+        series: [{
+            type: 'pie',
+            radius: ['45%', '72%'],
+            center: ['35%', '50%'],
+            avoidLabelOverlap: false,
+            label: {
+                show: true, position: 'center', fontSize: 13,
+                fontFamily: f, color: '#d4d4dc', fontWeight: 600,
+                formatter: function() { return (ownerTotal + communityTotal).toLocaleString() + '\ncommits'; },
+                lineHeight: 18
+            },
+            emphasis: {
+                label: { show: true, fontSize: 14, fontWeight: 700 }
+            },
+            itemStyle: { borderColor: '#14141c', borderWidth: 2 },
+            data: [
+                { value: communityTotal, name: 'Community', itemStyle: { color: '#3b82f6' } },
+                { value: ownerTotal, name: 'Owner', itemStyle: { color: '#9090a0' } }
+            ]
+        }]
+    });
+    window.addEventListener('resize', function() { chart.resize(); });
+});
+</script>

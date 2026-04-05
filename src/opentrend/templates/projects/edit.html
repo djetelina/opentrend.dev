@@ -1,0 +1,169 @@
+{% extends "base.html" %}
+{% block title %}Edit {{ project.display_name }} — opentrend.dev{% endblock %}
+{% block content %}
+<div class="px-8 lg:px-12 xl:px-16 py-8">
+
+    {# Header #}
+    <div class="flex items-center gap-3 mb-8">
+        <a href="/p/{{ project.github_repo }}" class="text-fg-dim hover:text-fg no-underline text-sm">&larr; back</a>
+        <span class="text-border">|</span>
+        <h1 class="text-2xl font-semibold text-fg-bright tracking-tight">{{ project.display_name }}</h1>
+    </div>
+
+    <form method="post" action="/projects/{{ project.id }}/edit">
+        <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+
+        {# ── Package Mappings ── #}
+        {% set source_icon = {
+            "pypi": "&#xe73c;", "npm": "&#xe71e;", "crates_io": "&#xe7a8;", "rubygems": "&#xe791;",
+            "arch": "&#xf303;", "aur": "&#xf303;", "manjaro": "&#xf312;", "parabola": "&#xf303;",
+            "debian": "&#xf306;", "ubuntu": "&#xf31b;",
+            "fedora": "&#xf30a;", "epel": "&#xf30a;", "opensuse": "&#xf314;", "altlinux": "&#xf17c;", "terra": "&#xf17c;",
+            "homebrew": "&#xe711;", "homebrew_tap": "&#xe711;", "macports": "&#xe711;",
+            "chocolatey": "&#xe70f;", "scoop": "&#xe70f;",
+            "freebsd": "&#xf30c;", "openbsd": "&#xf30c;", "openindiana": "&#xf17c;",
+            "alpine": "&#xf300;", "nix": "&#xf313;", "void": "&#xf17c;", "gentoo": "&#xf30d;",
+            "solus": "&#xf17c;", "chimera": "&#xf17c;", "guix": "&#xf17c;", "wakemeops": "&#xf17c;",
+            "pacstall": "&#xf17c;", "aosc": "&#xf17c;", "carbs": "&#xf17c;", "termux": "&#xf489;",
+        } %}
+        {% set groups = [
+            ("Registries", "&#xf121;", ["pypi", "npm", "crates_io", "rubygems"]),
+            ("Arch", "&#xf303;", ["arch", "aur", "manjaro", "parabola"]),
+            ("Debian / Ubuntu", "&#xf306;", ["debian", "ubuntu"]),
+            ("RPM", "&#xf30a;", ["fedora", "epel", "opensuse", "altlinux", "terra"]),
+            ("macOS", "&#xe711;", ["homebrew", "homebrew_tap", "macports"]),
+            ("Windows", "&#xe70f;", ["chocolatey", "scoop"]),
+            ("BSD", "&#xf30c;", ["freebsd", "openbsd", "openindiana"]),
+            ("Other", "&#xf17c;", ["alpine", "nix", "void", "gentoo", "solus", "chimera", "guix", "wakemeops", "pacstall", "aosc", "carbs", "termux"]),
+        ] %}
+        {% set proj_name = project.display_name | lower %}
+        {# Build lookups #}
+        {% set mapping_by_source = {} %}
+        {% for mapping in project.package_mappings %}
+            {% if mapping.source not in mapping_by_source %}
+                {% set _ = mapping_by_source.update({mapping.source: []}) %}
+            {% endif %}
+            {% set _ = mapping_by_source[mapping.source].append(mapping) %}
+        {% endfor %}
+        {# version/freshness lookup from matrix #}
+        {% set pkg_info = {} %}
+        {% for row in matrix %}
+            {% set _ = pkg_info.update({row.source + ":" + row.package_name: row}) %}
+        {% endfor %}
+
+        <div class="mb-8">
+            <div class="flex items-center gap-3 text-xs font-medium text-fg-faint uppercase tracking-widest mb-5">
+                <span class="nf">&#xf487;</span> package sources
+                <span class="flex-1 h-px bg-border-subtle"></span>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-x-8 gap-y-4">
+                {% for gname, gicon, gsources in groups %}
+                    {% set ns = namespace(has_any=false) %}
+                    {% for src in gsources if src in mapping_by_source %}
+                        {% set ns.has_any = true %}
+                    {% endfor %}
+                    {% if ns.has_any %}
+                    <div>
+                        <div class="text-[0.65rem] font-medium text-fg-faint uppercase tracking-widest mb-2">
+                            <span class="nf">{{ gicon | safe }}</span> {{ gname }}
+                        </div>
+                        <div class="flex flex-wrap gap-1.5">
+                            {% for src in gsources %}
+                                {% for mapping in mapping_by_source.get(src, []) %}
+                                {% set info = pkg_info.get(mapping.source + ":" + mapping.package_name, {}) %}
+                                <label class="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded border border-border-subtle bg-bg-raised hover:border-border transition-colors cursor-pointer text-sm group">
+                                    <input type="checkbox" name="packages" value="{{ mapping.source }}:{{ mapping.package_name }}" checked
+                                           class="accent-green-500 w-3.5 h-3.5 shrink-0">
+                                    <span class="nf text-fg-dim group-hover:text-fg transition-colors">{{ source_icon.get(mapping.source, "&#xf17c;") | safe }}</span>
+                                    <span class="text-fg">{{ mapping.source }}</span>
+                                    {% if mapping.package_name | lower != proj_name %}<span class="text-fg-faint text-xs">{{ mapping.package_name }}</span>{% endif %}
+                                    {% if info.get("version") %}
+                                        <span class="ml-auto inline-block w-1.5 h-1.5 rounded-full shrink-0 {% if info.get('freshness') == 'current' %}bg-green-500{% elif info.get('freshness') == 'outdated' %}bg-red-500{% else %}bg-fg-dim{% endif %}"></span>
+                                        <span class="text-fg-dim text-xs">{{ info.version }}</span>
+                                    {% endif %}
+                                </label>
+                                {% endfor %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+
+            {# Re-discover #}
+            <div class="mt-4 pt-4 border-t border-border-subtle">
+                <div class="flex items-center gap-3 mb-2">
+                    <div class="text-xs text-fg-dim">Discover new packages</div>
+                    <button type="button"
+                            class="text-xs text-fg-dim hover:text-fg border border-border-subtle hover:border-border rounded px-2.5 py-1 bg-transparent transition-colors font-mono cursor-pointer"
+                            hx-get="/projects/{{ project.id }}/rediscover"
+                            hx-target="#rediscover-results"
+                            hx-indicator="#rediscover-spinner"
+                            hx-swap="innerHTML">
+                        <span class="nf">&#xf021;</span> scan
+                    </button>
+                    <span id="rediscover-spinner" class="htmx-indicator text-xs text-fg-faint">scanning...</span>
+                </div>
+                <div id="rediscover-results"></div>
+            </div>
+
+            {# Add packages manually #}
+            <div class="mt-4 pt-4 border-t border-border-subtle">
+                <div class="text-xs text-fg-dim mb-3">Add packages manually</div>
+                <div id="extra-packages" class="space-y-2">
+                    <div class="package-row flex gap-2 items-center">
+                        {% include "components/source_select.html" %}
+                        <input type="text" name="extra_name[]" placeholder="package name"
+                               class="flex-1 bg-bg-raised text-fg border border-border rounded px-3 py-2 text-sm font-mono outline-none focus:border-fg-dim transition-colors">
+                        <input type="text" name="extra_tap[]" placeholder="user/tap" class="tap-field bg-bg-raised text-fg border border-border rounded px-3 py-2 text-sm font-mono outline-none focus:border-fg-dim transition-colors w-44" style="display:none">
+                    </div>
+                </div>
+                <button type="button" class="mt-2 text-sm text-fg-dim hover:text-fg border border-border-subtle hover:border-border rounded px-3 py-1.5 bg-transparent transition-colors font-mono" onclick="addPackageRow()">+ add another</button>
+            </div>
+        </div>
+
+        {# ── Save ── #}
+        <div class="flex items-center gap-3">
+            <button type="submit" class="bg-accent-teal text-bg px-5 py-2.5 rounded text-sm font-medium hover:bg-[#7af0de] transition-colors font-mono border-none cursor-pointer">Save</button>
+            <a href="/p/{{ project.github_repo }}" class="text-sm text-fg-dim hover:text-fg no-underline">cancel</a>
+        </div>
+
+    </form>
+
+    {# ── Danger Zone ── #}
+    <div class="mt-16 pt-6 border-t border-red-500/20">
+        <div class="flex items-center gap-3 text-xs font-medium text-red-500/60 uppercase tracking-widest mb-4">
+            danger zone
+            <span class="flex-1 h-px bg-red-500/20"></span>
+        </div>
+        <form method="post" action="/projects/{{ project.id }}/delete">
+            <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="text-sm text-red-500 border border-red-500/30 hover:border-red-500 rounded px-4 py-2 bg-transparent transition-colors font-mono cursor-pointer" onclick="return confirm('Delete {{ project.display_name }}? This cannot be undone.')">Delete Project</button>
+        </form>
+    </div>
+
+</div>
+
+<script>
+function addPackageRow() {
+    var container = document.getElementById('extra-packages');
+    var row = container.querySelector('.package-row').cloneNode(true);
+    row.querySelector('select').value = '';
+    row.querySelectorAll('input').forEach(function(input) { input.value = ''; });
+    row.querySelector('.tap-field').style.display = 'none';
+    container.appendChild(row);
+    bindTapToggle(row);
+}
+
+function bindTapToggle(row) {
+    var select = row.querySelector('select');
+    var tapField = row.querySelector('.tap-field');
+    select.addEventListener('change', function() {
+        tapField.style.display = this.value === 'homebrew_tap' ? '' : 'none';
+    });
+}
+
+document.querySelectorAll('.package-row').forEach(bindTapToggle);
+</script>
+{% endblock %}

@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% block title %}Configure Project — opentrend.dev{% endblock %}
+{% block content %}
+<h1 class="animate-in">Configure: {{ display_name }}</h1>
+<div class="dash-repo animate-in delay-1">{{ github_repo }}</div>
+
+<form method="post" action="/projects/add/confirm">
+    <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+    <input type="hidden" name="github_repo" value="{{ github_repo }}">
+    <input type="hidden" name="display_name" value="{{ display_name }}">
+    <input type="hidden" name="description" value="{{ description }}">
+
+    {% if discovery_warnings %}
+    <div class="animate-in delay-2" style="background:rgba(234,179,8,0.1);border:1px solid rgba(234,179,8,0.3);border-radius:6px;padding:0.75rem 1rem;margin-bottom:1rem">
+        {% for warn in discovery_warnings %}
+        <p style="color:#eab308;font-size:0.85rem;margin:0">&#x26a0; {{ warn }}</p>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="form-section animate-in delay-2">
+        <h2>Discovered Packages</h2>
+        <p class="form-help">Select which package sources to track:</p>
+        <div class="discovered-list">
+            {% for pkg in discovered %}
+            <label>
+                <input type="checkbox" name="packages" value="{{ pkg.source }}:{{ pkg.package_name }}" checked>
+                <span>{{ pkg.source }}</span> &mdash; <span class="mono">{{ pkg.package_name }}</span>
+                <span class="discovered-meta">{{ pkg.version }}</span>
+            </label>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="form-section animate-in delay-3">
+        <h2>Additional Package Mappings</h2>
+        <div id="extra-packages">
+            <div class="package-row">
+                {% include "components/source_select.html" %}
+                <input type="text" name="extra_name[]" placeholder="package name">
+                <input type="text" name="extra_tap[]" placeholder="user/tap (homebrew only)" class="tap-field" style="display:none">
+            </div>
+        </div>
+        <button type="button" class="btn btn-secondary btn-sm mt-1" onclick="addPackageRow()">+ Add another</button>
+    </div>
+
+
+    <div class="form-actions animate-in delay-6">
+        <button type="submit" class="btn btn-primary">Create Project</button>
+    </div>
+</form>
+
+<script>
+function addPackageRow() {
+    var container = document.getElementById('extra-packages');
+    var row = container.querySelector('.package-row').cloneNode(true);
+    row.querySelector('select').value = '';
+    row.querySelectorAll('input').forEach(function(input) { input.value = ''; });
+    row.querySelector('.tap-field').style.display = 'none';
+    container.appendChild(row);
+    bindTapToggle(row);
+}
+
+function bindTapToggle(row) {
+    var select = row.querySelector('select');
+    var tapField = row.querySelector('.tap-field');
+    select.addEventListener('change', function() {
+        tapField.style.display = this.value === 'homebrew_tap' ? '' : 'none';
+    });
+}
+
+document.querySelectorAll('.package-row').forEach(bindTapToggle);
+</script>
+{% endblock %}

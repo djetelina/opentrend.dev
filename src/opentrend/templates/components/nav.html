@@ -1,0 +1,51 @@
+<div class="border-b border-border">
+    <nav class="flex items-center gap-6 px-8 lg:px-10 xl:px-12 py-3 font-mono text-sm lg:text-base">
+        <a href="/" class="flex items-center gap-2 font-semibold no-underline hover:opacity-90 text-base lg:text-lg">
+            <svg class="w-5 h-5 lg:w-6 lg:h-6" viewBox="0 0 32 32" fill="none">
+                <rect x="3" y="3" width="14" height="12" rx="1.5" fill="#5eead4" opacity="0.85"/>
+                <rect x="19" y="3" width="10" height="12" rx="1.5" fill="#5eead4" opacity="0.5"/>
+                <rect x="3" y="17" width="8" height="12" rx="1.5" fill="#5eead4" opacity="0.55"/>
+                <rect x="13" y="17" width="10" height="12" rx="1.5" fill="#5eead4" opacity="0.35"/>
+                <rect x="25" y="17" width="4" height="12" rx="1.5" fill="#5eead4" opacity="0.2"/>
+            </svg>
+            <span><span class="text-accent-teal">open</span><span class="text-fg-bright">trend</span><span class="text-accent-teal">.dev</span></span>
+        </a>
+        <div class="flex items-center gap-5 ml-auto text-sm">
+            {% if user %}
+                <div class="relative" id="user-menu">
+                    <button onclick="document.getElementById('user-dropdown').classList.toggle('hidden')" class="flex items-center gap-1.5 text-fg-dim hover:text-fg bg-transparent border-0 cursor-pointer font-mono text-sm">
+                        <img src="{{ user.avatar_url }}" class="w-5 h-5 rounded-full" alt="">
+                        {{ user.github_username }}
+                        <span class="text-[0.6rem]">&#x25BE;</span>
+                    </button>
+                    <div id="user-dropdown" class="hidden absolute right-0 top-full mt-1 bg-bg-raised border border-border rounded shadow-lg py-1 min-w-[160px] z-50">
+                        <form method="post" action="/auth/logout" style="margin:0">
+                            <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+                            <button type="submit" class="block w-full text-left px-3 py-1.5 text-sm text-fg-dim hover:text-fg hover:bg-bg-card bg-transparent border-0 cursor-pointer font-mono">logout</button>
+                        </form>
+                        <div class="border-t border-border-subtle my-1"></div>
+                        <button onclick="document.getElementById('delete-modal').classList.remove('hidden'); document.getElementById('user-dropdown').classList.add('hidden')" class="block w-full text-left px-3 py-1.5 text-sm text-red-500 hover:bg-bg-card bg-transparent border-0 cursor-pointer font-mono">delete account</button>
+                    </div>
+                </div>
+                <div id="delete-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center" style="background:rgba(0,0,0,0.6)">
+                    <div class="bg-bg-raised border border-border rounded-lg p-6 max-w-sm w-full mx-4">
+                        <h3 class="text-fg-bright text-lg font-semibold mb-2">Delete account</h3>
+                        <p class="text-fg-dim text-sm mb-4">This will permanently delete your account, all projects, and all collected data. This cannot be undone.</p>
+                        <form method="post" action="/auth/delete-account">
+                            <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+                            <label class="block text-sm text-fg-dim mb-2">Type <strong class="text-fg-bright">DELETE</strong> to confirm</label>
+                            <input type="text" name="confirmation" class="w-full bg-bg border border-border-subtle rounded px-3 py-1.5 text-fg font-mono text-sm mb-3" autocomplete="off">
+                            <div class="flex gap-2 justify-end">
+                                <button type="button" onclick="document.getElementById('delete-modal').classList.add('hidden')" class="px-3 py-1.5 text-sm text-fg-dim border border-border-subtle rounded bg-transparent cursor-pointer font-mono hover:text-fg">cancel</button>
+                                <button type="submit" class="px-3 py-1.5 text-sm text-white bg-red-600 hover:bg-red-700 border-0 rounded cursor-pointer font-mono">delete account</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                <script>document.addEventListener('click', function(e) { if (!document.getElementById('user-menu').contains(e.target)) document.getElementById('user-dropdown').classList.add('hidden'); });</script>
+            {% else %}
+                <a href="/auth/login" class="text-fg-dim no-underline hover:text-fg">login</a>
+            {% endif %}
+        </div>
+    </nav>
+</div>

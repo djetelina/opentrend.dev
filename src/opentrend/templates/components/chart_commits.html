@@ -1,0 +1,51 @@
+<div id="chart-commits" class="chart-container"></div>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var el = document.getElementById('chart-commits');
+    var chart = echarts.init(el);
+    var raw = {{ commits_series | safe }};
+    var f = "'IBM Plex Mono', monospace";
+    // Compute daily delta (new commits per day)
+    var dates = [];
+    var deltas = [];
+    for (var i = 1; i < raw.length; i++) {
+        dates.push(raw[i].date);
+        deltas.push(Math.max(0, raw[i].value - raw[i-1].value));
+    }
+    if (deltas.length === 0 || deltas.every(function(v) { return v === 0; })) {
+        el.closest('.chart-panel').style.display = 'none'; return;
+    }
+    chart.setOption({
+        backgroundColor: 'transparent',
+        tooltip: {
+            trigger: 'axis',
+            backgroundColor: '#1c1c24',
+            borderColor: '#363642',
+            padding: [8, 12],
+            textStyle: { color: '#d4d4dc', fontFamily: f, fontSize: 11 },
+            axisPointer: { type: 'shadow' }
+        },
+        grid: { left: 48, right: 16, top: 12, bottom: 24 },
+        xAxis: {
+            type: 'category',
+            data: dates,
+            axisLine: { lineStyle: { color: '#363642' } },
+            axisLabel: { color: '#9090a0', fontFamily: f, fontSize: 10 },
+            axisTick: { show: false }
+        },
+        yAxis: {
+            type: 'value',
+            axisLine: { show: false },
+            axisLabel: { color: '#9090a0', fontFamily: f, fontSize: 10 },
+            splitLine: { lineStyle: { color: '#2a2a36' } }
+        },
+        series: [{
+            type: 'bar',
+            data: deltas,
+            barMaxWidth: 20,
+            itemStyle: { color: '#06b6d4', borderRadius: [2, 2, 0, 0] }
+        }]
+    });
+    window.addEventListener('resize', function() { chart.resize(); });
+});
+</script>

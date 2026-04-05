@@ -1,0 +1,50 @@
+<div id="chart-reach" class="chart-container"></div>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var chart = echarts.init(document.getElementById('chart-reach'));
+    var data = {{ reach_series | safe }};
+    var f = "'IBM Plex Mono', monospace";
+    chart.setOption({
+        backgroundColor: 'transparent',
+        tooltip: {
+            trigger: 'axis',
+            backgroundColor: '#1c1c24',
+            borderColor: '#363642',
+            padding: [8, 12],
+            textStyle: { color: '#d4d4dc', fontFamily: f, fontSize: 11 }
+        },
+        grid: { left: 56, right: 16, top: 12, bottom: 24 },
+        xAxis: {
+            type: 'category',
+            data: data.map(function(d) { return d.date; }),
+            axisLine: { lineStyle: { color: '#363642' } },
+            axisLabel: { color: '#9090a0', fontFamily: f, fontSize: 10 },
+            axisTick: { show: false }
+        },
+        yAxis: {
+            type: 'value',
+            scale: true,
+            boundaryGap: ['10%', '10%'],
+            axisLine: { show: false },
+            axisLabel: { color: '#9090a0', fontFamily: f, fontSize: 10 },
+            splitLine: { lineStyle: { color: '#2a2a36' } }
+        },
+        series: [{
+            type: 'line',
+            data: data.map(function(d) { return d.value; }),
+            smooth: false,
+            showSymbol: data.length <= 30,
+            symbolSize: 3,
+            lineStyle: { color: '#5eead4', width: 1.5 },
+            itemStyle: { color: '#5eead4' },
+            areaStyle: {
+                color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                    { offset: 0, color: 'rgba(94,234,212,0.15)' },
+                    { offset: 1, color: 'rgba(94,234,212,0.02)' }
+                ])
+            }
+        }]
+    });
+    window.addEventListener('resize', function() { chart.resize(); });
+});
+</script>

@@ -1,0 +1,51 @@
+<div id="chart-releases" class="chart-container"></div>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var el = document.getElementById('chart-releases');
+    var data = {{ release_download_series | safe }};
+    if (!data.length) { el.closest('.chart-panel').style.display = 'none'; return; }
+    var chart = echarts.init(el);
+    var f = "'IBM Plex Mono', monospace";
+    var palette = ['#363642', '#4a4a5a', '#3b82f6', '#60a5fa'];
+    chart.setOption({
+        backgroundColor: 'transparent',
+        tooltip: {
+            trigger: 'axis',
+            backgroundColor: '#1c1c24',
+            borderColor: '#363642',
+            padding: [8, 12],
+            textStyle: { color: '#d4d4dc', fontFamily: f, fontSize: 11 },
+            axisPointer: { type: 'shadow' },
+            formatter: function(p) { return p[0].name + '<br/>' + p[0].value.toLocaleString() + ' downloads'; }
+        },
+        grid: { left: 90, right: 24, top: 8, bottom: 8 },
+        xAxis: {
+            type: 'value',
+            axisLine: { show: false },
+            axisLabel: { color: '#9090a0', fontFamily: f, fontSize: 10 },
+            splitLine: { lineStyle: { color: '#2a2a36' } }
+        },
+        yAxis: {
+            type: 'category',
+            data: data.map(function(d) { return d.name; }),
+            axisLine: { lineStyle: { color: '#363642' } },
+            axisLabel: { color: '#9090a0', fontFamily: f, fontSize: 10 },
+            axisTick: { show: false },
+            inverse: true
+        },
+        series: [{
+            type: 'bar',
+            data: data.map(function(d, i) {
+                return { value: d.downloads, itemStyle: { color: palette[i % palette.length], borderRadius: [0, 3, 3, 0] } };
+            }),
+            barMaxWidth: 20,
+            label: {
+                show: true, position: 'right',
+                color: '#9090a0', fontFamily: f, fontSize: 10,
+                formatter: function(p) { return p.value.toLocaleString(); }
+            }
+        }]
+    });
+    window.addEventListener('resize', function() { chart.resize(); });
+});
+</script>

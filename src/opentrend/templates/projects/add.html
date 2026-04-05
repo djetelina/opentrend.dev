@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+{% block title %}Add Project — opentrend.dev{% endblock %}
+{% block content %}
+<div class="px-8 lg:px-12 xl:px-16 py-8">
+    <h1 class="text-3xl font-semibold text-fg-bright tracking-tight mb-1">add project</h1>
+    <p class="text-fg-dim mb-8">Select a repository to start tracking.</p>
+
+    <form method="post" action="/projects/add" id="add-form">
+        <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+        <div class="grid grid-cols-1 lg:grid-cols-[1fr_1fr] xl:grid-cols-[1.2fr_1fr] gap-8 lg:gap-12 items-start">
+
+            {# ── Left: repo picker ── #}
+            <div>
+                <div hx-get="/projects/add/repos" hx-trigger="load" hx-swap="innerHTML" id="repo-area">
+                    <div class="flex items-center gap-2 text-fg-dim text-sm py-12">
+                        <span class="inline-block w-4 h-4 border-2 border-fg-faint border-t-fg-bright rounded-full animate-spin"></span>
+                        Loading repositories...
+                    </div>
+                </div>
+
+                {% if user.is_admin %}
+                <details class="mt-4">
+                    <summary class="cursor-pointer text-fg-faint text-xs hover:text-fg-dim transition-colors">manual entry (admin)</summary>
+                    <div class="mt-2">
+                        <input type="text" id="github_repo_manual" placeholder="owner/repo" class="w-full">
+                    </div>
+                </details>
+                {% endif %}
+
+                <p class="text-fg-faint text-xs mt-4">Missing a repo? <a href="https://github.com/settings/connections/applications/{{ github_client_id }}" target="_blank" class="text-fg-dim underline hover:text-fg">Manage org access on GitHub</a>, then <a href="/auth/login?return_url=/projects/add" class="text-fg-dim underline hover:text-fg">re-authorize</a>.</p>
+
+                <div class="mt-6 text-center">
+                    <button type="submit" id="discover-btn" class="inline-flex items-center gap-2 bg-accent-teal text-bg px-6 py-2.5 rounded text-base font-medium hover:bg-[#7af0de] transition-colors cursor-pointer font-mono">
+                        <span class="nf text-base">&#xf002;</span> discover packages
+                    </button>
+                </div>
+            </div>
+
+            {# ── Right: what we'll discover ── #}
+            <div class="border border-border-subtle rounded-md bg-bg-raised p-6 lg:p-8">
+                <div class="text-xs text-fg-faint uppercase tracking-wider mb-4">what we'll look for</div>
+
+                <div class="mb-5">
+                    <div class="text-sm text-fg-bright font-medium mb-2"><span class="nf text-fg-dim">&#xf09b;</span> GitHub</div>
+                    <div class="flex flex-wrap gap-1.5">
+                        {% for tag in ["stars", "forks", "issues", "PRs", "contributors", "commits", "releases", "traffic", "dependents"] %}
+                        <span class="text-xs text-fg-dim border border-border-subtle rounded px-2 py-0.5">{{ tag }}</span>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="mb-5">
+                    <div class="text-sm text-fg-bright font-medium mb-2"><span class="nf text-fg-dim">&#xf121;</span> Registries</div>
+                    <div class="flex flex-wrap gap-1.5">
+                        {% for tag in ["PyPI", "npm", "crates.io", "RubyGems"] %}
+                        <span class="text-xs text-fg-dim border border-border-subtle rounded px-2 py-0.5">{{ tag }}</span>
+                        {% endfor %}
+                    </div>
+                    <div class="text-xs text-fg-faint mt-1.5">versions, downloads, dependents</div>
+                </div>
+
+                <div class="mb-5">
+                    <div class="text-sm text-fg-bright font-medium mb-2"><span class="nf text-fg-dim">&#xf17c;</span> OS &amp; Distros</div>
+                    <div class="flex flex-wrap gap-1.5">
+                        {% for tag in ["Homebrew", "AUR", "Arch", "Debian", "Ubuntu", "Fedora", "Alpine", "Nix", "Void", "Chocolatey", "Scoop", "MacPorts"] %}
+                        <span class="text-xs text-fg-dim border border-border-subtle rounded px-2 py-0.5">{{ tag }}</span>
+                        {% endfor %}
+                        <span class="text-xs text-fg-faint border border-border-subtle/50 rounded px-2 py-0.5">+13 more</span>
+                    </div>
+                    <div class="text-xs text-fg-faint mt-1.5">version tracking across 25+ sources</div>
+                </div>
+
+                <div>
+                    <div class="text-sm text-fg-bright font-medium mb-2"><span class="nf text-fg-dim">&#xf1ec;</span> Computed</div>
+                    <div class="flex flex-wrap gap-1.5">
+                        {% for tag in ["reach score", "traction", "version freshness", "weekly deltas"] %}
+                        <span class="text-xs text-fg-dim border border-border-subtle rounded px-2 py-0.5">{{ tag }}</span>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+        </div>{# /grid #}
+
+    </form>
+</div>
+
+<script>
+document.getElementById('add-form').addEventListener('submit', function() {
+    var btn = document.getElementById('discover-btn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="inline-block w-4 h-4 border-2 border-bg border-t-transparent rounded-full animate-spin"></span> discovering packages\u2026';
+    btn.style.opacity = '0.6';
+});
+document.addEventListener('DOMContentLoaded', function() {
+    var manual = document.getElementById('github_repo_manual');
+    if (manual) {
+        manual.addEventListener('input', function() {
+            if (this.value.trim()) {
+                var existing = document.querySelector('input[name="github_repo"][type="hidden"]');
+                if (!existing) {
+                    existing = document.createElement('input');
+                    existing.type = 'hidden';
+                    existing.name = 'github_repo';
+                    this.parentNode.appendChild(existing);
+                }
+                existing.value = this.value.trim();
+                document.querySelectorAll('.repo-card input[type="radio"]').forEach(function(r) {
+                    r.checked = false;
+                    r.required = false;
+                });
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

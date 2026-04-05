@@ -1,0 +1,17 @@
+{% if new_packages %}
+<div class="flex flex-wrap gap-2 mt-2">
+    {% for pkg in new_packages %}
+    <label class="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded border border-green-500/30 bg-bg-raised hover:border-green-500/60 transition-colors cursor-pointer text-sm">
+        <input type="checkbox" name="packages" value="{{ pkg.source }}:{{ pkg.package_name }}" checked
+               class="accent-green-500 w-3.5 h-3.5 shrink-0">
+        <span class="text-fg-dim">{{ pkg.source }}</span>
+        <span class="text-fg">{{ pkg.package_name }}</span>
+        {% if pkg.version %}
+        <span class="text-fg-faint text-xs">{{ pkg.version }}</span>
+        {% endif %}
+    </label>
+    {% endfor %}
+</div>
+{% else %}
+<div class="text-sm text-fg-faint mt-2">No new packages found.</div>
+{% endif %}

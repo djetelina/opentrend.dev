@@ -1,0 +1,57 @@
+<div id="chart-traffic-referrers" class="chart-container"></div>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var chart = echarts.init(document.getElementById('chart-traffic-referrers'));
+    var allSeries = {{ referrer_series | safe }};
+    if (!allSeries.length) return;
+    var dates = allSeries[0].data.map(function(d) { return d.date; });
+    var f = "'IBM Plex Mono', monospace";
+    var colors = ['#22d3ee', '#a78bfa', '#4ade80', '#fb923c', '#f472b6', '#eab308', '#38bdf8', '#c084fc', '#34d399', '#fbbf24'];
+    var series = allSeries.map(function(s, i) {
+        return {
+            name: s.name,
+            type: 'line',
+            data: s.data.map(function(d) { return d.value; }),
+            smooth: false,
+            showSymbol: dates.length <= 30,
+            symbolSize: 3,
+            lineStyle: { color: colors[i % colors.length], width: 1.5 },
+            itemStyle: { color: colors[i % colors.length] }
+        };
+    });
+    chart.setOption({
+        backgroundColor: 'transparent',
+        tooltip: {
+            trigger: 'axis',
+            backgroundColor: '#1c1c24',
+            borderColor: '#363642',
+            padding: [8, 12],
+            textStyle: { color: '#d4d4dc', fontFamily: f, fontSize: 11 }
+        },
+        legend: {
+            data: allSeries.map(function(s) { return s.name; }),
+            textStyle: { color: '#9090a0', fontFamily: f, fontSize: 10 },
+            top: 0, right: 0,
+            itemWidth: 12, itemHeight: 2
+        },
+        grid: { left: 48, right: 16, top: 28, bottom: 24 },
+        xAxis: {
+            type: 'category',
+            data: dates,
+            axisLine: { lineStyle: { color: '#363642' } },
+            axisLabel: { color: '#9090a0', fontFamily: f, fontSize: 10 },
+            axisTick: { show: false }
+        },
+        yAxis: {
+            type: 'value',
+            scale: true,
+            boundaryGap: ['10%', '10%'],
+            axisLine: { show: false },
+            axisLabel: { color: '#9090a0', fontFamily: f, fontSize: 10 },
+            splitLine: { lineStyle: { color: '#2a2a36' } }
+        },
+        series: series
+    });
+    window.addEventListener('resize', function() { chart.resize(); });
+});
+</script>

@@ -1,0 +1,64 @@
+<div id="chart-codefreq" class="chart-container"></div>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var el = document.getElementById('chart-codefreq');
+    var adds = {{ additions_series | safe }};
+    var dels = {{ deletions_series | safe }};
+    if (adds.length === 0 || (adds.every(function(d) { return d.value === 0; }) && dels.every(function(d) { return d.value === 0; }))) {
+        el.closest('.chart-panel').style.display = 'none'; return;
+    }
+    var dates = adds.map(function(d) { return d.date; });
+    var chart = echarts.init(el);
+    var f = "'IBM Plex Mono', monospace";
+    chart.setOption({
+        backgroundColor: 'transparent',
+        tooltip: {
+            trigger: 'axis',
+            backgroundColor: '#1c1c24',
+            borderColor: '#363642',
+            padding: [8, 12],
+            textStyle: { color: '#d4d4dc', fontFamily: f, fontSize: 11 },
+            axisPointer: { type: 'shadow' }
+        },
+        legend: {
+            data: ['Additions', 'Deletions'],
+            textStyle: { color: '#9090a0', fontFamily: f, fontSize: 10 },
+            top: 0, right: 0,
+            itemWidth: 12, itemHeight: 2
+        },
+        grid: { left: 56, right: 16, top: 28, bottom: 24 },
+        xAxis: {
+            type: 'category',
+            data: dates,
+            axisLine: { lineStyle: { color: '#363642' } },
+            axisLabel: { color: '#9090a0', fontFamily: f, fontSize: 10 },
+            axisTick: { show: false }
+        },
+        yAxis: {
+            type: 'value',
+            axisLine: { show: false },
+            axisLabel: { color: '#9090a0', fontFamily: f, fontSize: 10 },
+            splitLine: { lineStyle: { color: '#2a2a36' } }
+        },
+        series: [
+            {
+                name: 'Additions',
+                type: 'bar',
+                stack: 'code',
+                data: adds.map(function(d) { return d.value; }),
+                itemStyle: { color: '#22c55e', borderRadius: [2, 2, 0, 0] },
+                barMaxWidth: 12
+            },
+            {
+                name: 'Deletions',
+                type: 'bar',
+                stack: 'code',
+                data: dels.map(function(d) { return -d.value; }),
+                itemStyle: { color: '#ef4444', borderRadius: [0, 0, 2, 2] },
+                barMaxWidth: 12
+            }
+        ]
+    });
+    window.addEventListener('resize', function() { chart.resize(); });
+});
+</script>

@@ -1,0 +1,70 @@
+<div id="chart-traffic-views" class="chart-container"></div>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var chart = echarts.init(document.getElementById('chart-traffic-views'));
+    var viewsData = {{ traffic_views_series | safe }};
+    var uniqueData = {{ unique_views_series | safe }};
+    var dates = viewsData.map(function(d) { return d.date; });
+    var f = "'IBM Plex Mono', monospace";
+    chart.setOption({
+        backgroundColor: 'transparent',
+        tooltip: {
+            trigger: 'axis',
+            backgroundColor: '#1c1c24',
+            borderColor: '#363642',
+            padding: [8, 12],
+            textStyle: { color: '#d4d4dc', fontFamily: f, fontSize: 11 }
+        },
+        legend: {
+            data: ['Views', 'Unique'],
+            textStyle: { color: '#9090a0', fontFamily: f, fontSize: 10 },
+            top: 0, right: 0,
+            itemWidth: 12, itemHeight: 2
+        },
+        grid: { left: 48, right: 48, top: 28, bottom: 24 },
+        xAxis: {
+            type: 'category',
+            data: dates,
+            axisLine: { lineStyle: { color: '#363642' } },
+            axisLabel: { color: '#9090a0', fontFamily: f, fontSize: 10 },
+            axisTick: { show: false }
+        },
+        yAxis: [
+            {
+                type: 'value',
+                axisLine: { show: false },
+                axisLabel: { color: '#9090a0', fontFamily: f, fontSize: 10 },
+                splitLine: { lineStyle: { color: '#2a2a36' } }
+            },
+            {
+                type: 'value',
+                axisLine: { show: false },
+                axisLabel: { color: '#6a6a7a', fontFamily: f, fontSize: 10 },
+                splitLine: { show: false }
+            }
+        ],
+        series: [
+            {
+                name: 'Views',
+                type: 'bar',
+                yAxisIndex: 0,
+                data: viewsData.map(function(d) { return d.value; }),
+                itemStyle: { color: '#4ade80' },
+                barMaxWidth: 12
+            },
+            {
+                name: 'Unique',
+                type: 'line',
+                yAxisIndex: 1,
+                data: uniqueData.map(function(d) { return d.value; }),
+                smooth: false,
+                showSymbol: uniqueData.length <= 30,
+                symbolSize: 3,
+                lineStyle: { color: '#fb923c', width: 1.5 },
+                itemStyle: { color: '#fb923c' }
+            }
+        ]
+    });
+    window.addEventListener('resize', function() { chart.resize(); });
+});
+</script>

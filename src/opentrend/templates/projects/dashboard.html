@@ -1,0 +1,584 @@
+{% extends "base.html" %}
+{% block title %}{{ project.display_name }} — opentrend.dev{% endblock %}
+{% block content %}
+
+{# ════════ HERO HEADER ════════ #}
+<div class="px-8 lg:px-10 xl:px-12 pt-6 pb-5 border-b border-border-subtle">
+    <div class="flex items-start justify-between gap-6">
+        <div>
+            <div class="flex items-center gap-3 mb-1">
+                <h1 class="text-2xl lg:text-3xl font-semibold text-fg-bright tracking-tight">{{ project.display_name }}</h1>
+                <a href="https://github.com/{{ project.github_repo }}" target="_blank" class="text-fg-faint hover:text-fg no-underline text-lg" title="{{ project.github_repo }}"><span class="nf">&#xf09b;</span></a>
+            </div>
+            <div class="text-sm text-fg-dim">
+                {{ project.github_repo }}
+                {%- if latest_gh and latest_gh.license %} · {{ latest_gh.license }}{% endif %}
+                {%- if latest_release_tag %} · {{ latest_release_tag }}{% if latest_release_ago %} ({{ latest_release_ago }}){% endif %}{% endif %}
+            </div>
+            {% if project.description %}
+            <p class="text-sm text-fg-dim mt-1 max-w-2xl leading-relaxed">{{ project.description }}</p>
+            {% endif %}
+        </div>
+        <div class="flex flex-col items-end gap-1 shrink-0 mt-1">
+            <div class="flex items-center gap-3">
+                {% if latest_gh and latest_gh.reach_score %}
+                <div class="flex items-center gap-1.5">
+                    <img src="/badge/{{ project.github_repo }}/reach.svg" alt="opentrend.dev reach badge">
+                    <button class="inline-flex items-center gap-1.5 text-sm text-fg-dim border border-border-subtle hover:border-border rounded px-3 py-1.5 bg-transparent hover:text-fg transition-colors cursor-pointer font-mono" title="Copy badge markdown" onclick="navigator.clipboard.writeText('[![opentrend.dev reach](https://opentrend.dev/badge/{{ project.github_repo }}/reach.svg)](https://opentrend.dev/p/{{ project.github_repo }})'); this.querySelector('.nf').innerHTML='&#x2713;'; setTimeout(() => this.querySelector('.nf').innerHTML='&#xf0c5;', 1500)"><span class="nf">&#xf0c5;</span></button>
+                </div>
+                {% endif %}
+                {% if user %}
+                <a href="/projects/{{ project.id }}/edit" class="inline-flex items-center gap-1.5 text-sm text-fg-dim border border-border-subtle hover:border-border rounded px-3 py-1.5 no-underline hover:text-fg transition-colors"><span class="nf">&#xf040;</span> edit</a>
+                <form method="post" action="/projects/{{ project.id }}/collect" style="margin:0">
+                    <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="inline-flex items-center gap-1.5 text-sm text-fg-dim border border-border-subtle hover:border-border rounded px-3 py-1.5 bg-transparent hover:text-fg transition-colors cursor-pointer font-mono"><span class="nf">&#xf021;</span> sync</button>
+                </form>
+                {% endif %}
+            </div>
+            {% if user %}
+            <span class="text-sm text-fg-faint">next scan in {{ next_scan_in }}</span>
+            {% endif %}
+        </div>
+    </div>
+
+    {# ── KPI strip ── #}
+    {% if latest_gh %}
+    <div class="flex flex-wrap gap-x-8 gap-y-2 mt-4">
+        {% if latest_gh.reach_score %}
+        <div>
+            <div class="text-2xl lg:text-3xl font-semibold text-accent-teal leading-none">{{ "{:,}".format(latest_gh.reach_score) }}</div>
+            <div class="text-xs text-fg-faint uppercase tracking-wider mt-0.5">reach</div>
+        </div>
+        {% endif %}
+        <div>
+            <div class="text-2xl lg:text-3xl font-semibold text-fg-bright leading-none">{{ "{:,}".format(latest_gh.stars) }}
+                {%- if deltas.get('stars_delta') and deltas.stars_delta != 0 %}
+                <span class="text-sm font-medium {{ 'text-green-500' if deltas.stars_delta > 0 else 'text-red-500' }}">{{ "+{:,}".format(deltas.stars_delta) if deltas.stars_delta > 0 else "{:,}".format(deltas.stars_delta) }}</span>
+                {%- endif %}
+            </div>
+            <div class="text-xs text-fg-faint uppercase tracking-wider mt-0.5">stars</div>
+        </div>
+        <div>
+            <div class="text-2xl lg:text-3xl font-semibold text-fg-bright leading-none">{{ "{:,}".format(latest_gh.forks) }}
+                {%- if deltas.get('forks_delta') and deltas.forks_delta != 0 %}
+                <span class="text-sm font-medium {{ 'text-green-500' if deltas.forks_delta > 0 else 'text-red-500' }}">{{ "+{:,}".format(deltas.forks_delta) if deltas.forks_delta > 0 else "{:,}".format(deltas.forks_delta) }}</span>
+                {%- endif %}
+            </div>
+            <div class="text-xs text-fg-faint uppercase tracking-wider mt-0.5">forks</div>
+        </div>
+        <div>
+            <div class="text-2xl lg:text-3xl font-semibold text-fg-bright leading-none">{{ "{:,}".format(total_downloads) }}</div>
+            <div class="text-xs text-fg-faint uppercase tracking-wider mt-0.5">downloads/mo</div>
+        </div>
+        <div>
+            <div class="text-2xl lg:text-3xl font-semibold text-fg-bright leading-none">{{ "{:,}".format(latest_gh.contributors) }}</div>
+            <div class="text-xs text-fg-faint uppercase tracking-wider mt-0.5">contributors</div>
+        </div>
+        {% if matrix %}
+        <div>
+            <div class="text-2xl lg:text-3xl font-semibold text-fg-bright leading-none">{{ matrix|selectattr("version")|list|length }}</div>
+            <div class="text-xs text-fg-faint uppercase tracking-wider mt-0.5">packages</div>
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+
+{# ════════ MAIN GRID ════════ #}
+<div class="grid items-start px-8 lg:px-10 xl:px-12 py-6 gap-6" style="grid-template-columns:1fr 300px">
+
+{# ── Charts (left, main area) ── #}
+<div class="min-w-0">
+
+{% set has_growth = stars_series != "[]" %}
+{% set has_issues = open_issues_series != "[]" %}
+{% set has_prs = prs_series != "[]" %}
+{% set has_contributors = contributors_series != "[]" %}
+{% set has_watchers = watchers_series != "[]" %}
+{% set has_reach = reach_series != "[]" %}
+{% set has_commits = commits_series != "[]" %}
+{% set has_releases_cadence = release_count_series != "[]" %}
+{% set has_weekly_commits = weekly_commits_series != "[]" %}
+{% set has_code_freq = additions_series != "[]" %}
+{% set has_participation = owner_commits_series != "[]" %}
+{% set has_clones = clones_series != "[]" %}
+{% set has_traffic_views = traffic_views_series != "[]" %}
+{% set has_referrer_series = referrer_series != "[]" %}
+{% set has_referrer_daily = referrer_daily_series != "[]" %}
+{% set has_downloads = download_series != "[]" %}
+{% set has_releases = release_download_series != "[]" %}
+{% set has_dependents = dependents_series != "[]" %}
+{% set has_aur = aur_votes_series != "[]" %}
+
+{% macro range_badge(weekly=false) %}
+<span class="chart-range-badge{% if weekly %} chart-range-weekly{% endif %}">{{ weekly_label if weekly else daily_label }}</span>
+{% endmacro %}
+
+{% macro info(text) %}
+<span class="chart-panel-info">?<span class="chart-panel-desc">{{ text }}</span></span>
+{% endmacro %}
+
+{% macro maximize() %}
+<button class="chart-maximize" onclick="toggleMax(this)" title="maximize">&#x2922;</button>
+{% endmacro %}
+
+{% if has_growth or has_issues %}
+<div class="chart-grid">
+
+    {# ── Popularity ── #}
+    {% if has_growth or has_reach or has_watchers or has_dependents %}
+    <div class="chart-category"><span class="nf">&#xf005;</span> popularity</div>
+    {% endif %}
+
+    {% if has_reach %}
+    <div class="chart-panel chart-panel-wide">
+        <div class="chart-panel-label">reach{{ info("composite score combining stars, downloads, dependents, and traffic") }}{{ range_badge() }}{{ maximize() }}</div>
+        {% include "components/chart_reach.html" %}
+    </div>
+    {% endif %}
+
+    {% if has_dependents %}
+    <div class="chart-panel">
+        <div class="chart-panel-label">dependents{{ range_badge() }}{{ maximize() }}</div>
+        {% include "components/chart_dependents.html" %}
+    </div>
+    {% endif %}
+
+    {% if has_growth %}
+    <div class="chart-panel">
+        <div class="chart-panel-label">stars & forks{{ range_badge() }}{{ maximize() }}</div>
+        {% include "components/chart_growth.html" %}
+    </div>
+    {% endif %}
+
+    {% if has_watchers %}
+    <div class="chart-panel">
+        <div class="chart-panel-label">watchers{{ range_badge() }}{{ maximize() }}</div>
+        {% include "components/chart_watchers.html" %}
+    </div>
+    {% endif %}
+
+    {# ── Usage ── #}
+    {% if has_downloads or has_releases or has_clones or has_traffic_views or has_aur %}
+    <div class="chart-category"><span class="nf">&#xf019;</span> usage</div>
+    {% endif %}
+
+    {% if has_downloads %}
+    <div class="chart-panel chart-panel-wide">
+        <div class="chart-panel-label">downloads{{ range_badge() }}{{ maximize() }}</div>
+        {% include "components/chart_downloads.html" %}
+    </div>
+    {% endif %}
+
+    {% if has_releases %}
+    <div class="chart-panel">
+        <div class="chart-panel-label">release downloads{{ maximize() }}</div>
+        {% include "components/chart_releases.html" %}
+    </div>
+    {% endif %}
+
+    {% if has_clones %}
+    <div class="chart-panel">
+        <div class="chart-panel-label">git clones{{ info("daily clones and unique cloners") }}{{ range_badge() }}{{ maximize() }}</div>
+        {% include "components/chart_traffic_clones.html" %}
+    </div>
+    {% endif %}
+
+    {% if has_traffic_views %}
+    <div class="chart-panel">
+        <div class="chart-panel-label">visitors{{ info("daily page views and unique visitors") }}{{ range_badge() }}{{ maximize() }}</div>
+        {% include "components/chart_traffic_views.html" %}
+    </div>
+    {% endif %}
+
+    {% if has_aur %}
+    <div class="chart-panel">
+        <div class="chart-panel-label">aur stats{{ range_badge() }}{{ maximize() }}</div>
+        {% include "components/chart_aur.html" %}
+    </div>
+    {% endif %}
+
+    {# ── Discovery ── #}
+    {% if has_referrer_series or has_referrer_daily or referrer_table %}
+    <div class="chart-category"><span class="nf">&#xf002;</span> discovery</div>
+    {% endif %}
+
+    {% if has_referrer_series %}
+    <div class="chart-panel">
+        <div class="chart-panel-label">referring sites (rolling 14d){{ info("GitHub's 14-day rolling totals per referrer") }}{{ range_badge() }}{{ maximize() }}</div>
+        {% include "components/chart_traffic_referrers.html" %}
+    </div>
+    {% endif %}
+
+    {% if has_referrer_daily %}
+    <div class="chart-panel">
+        <div class="chart-panel-label">referring sites (daily est.){{ info("estimated daily views by diffing consecutive snapshots") }}{{ range_badge() }}{{ maximize() }}</div>
+        {% include "components/chart_traffic_referrers_daily.html" %}
+    </div>
+    {% endif %}
+
+    {% if referrer_table %}
+    <div class="chart-panel">
+        <div class="chart-panel-label">referrer totals (last 14d)</div>
+        {% include "components/traffic_referrers.html" %}
+    </div>
+    {% endif %}
+
+    {# ── Health ── #}
+    {% if has_issues or has_prs or has_contributors %}
+    <div class="chart-category"><span class="nf">&#xf21e;</span> health</div>
+    {% endif %}
+
+    {% if has_issues %}
+    <div class="chart-panel">
+        <div class="chart-panel-label">issues{{ range_badge() }}{{ maximize() }}</div>
+        {% include "components/chart_issues.html" %}
+    </div>
+    {% endif %}
+
+    {% if has_prs %}
+    <div class="chart-panel">
+        <div class="chart-panel-label">pull requests{{ range_badge() }}{{ maximize() }}</div>
+        {% include "components/chart_prs.html" %}
+    </div>
+    {% endif %}
+
+    {% if has_contributors %}
+    <div class="chart-panel">
+        <div class="chart-panel-label">contributors{{ range_badge() }}{{ maximize() }}</div>
+        {% include "components/chart_contributors.html" %}
+    </div>
+    {% endif %}
+
+    {# ── Development ── #}
+    {% if has_weekly_commits or has_code_freq or has_participation or has_commits or has_releases_cadence %}
+    <div class="chart-category"><span class="nf">&#xf121;</span> development</div>
+    {% endif %}
+
+    {% if has_weekly_commits %}
+    <div class="chart-panel chart-panel-wide">
+        <div class="chart-panel-label">weekly commits{{ info("total commits per week") }}{{ range_badge(weekly=true) }}{{ maximize() }}</div>
+        {% include "components/chart_weekly_commits.html" %}
+    </div>
+    {% endif %}
+
+    {% if has_code_freq %}
+    <div class="chart-panel chart-panel-wide">
+        <div class="chart-panel-label">code frequency{{ info("lines added and deleted per week") }}{{ range_badge(weekly=true) }}{{ maximize() }}</div>
+        {% include "components/chart_code_frequency.html" %}
+    </div>
+    {% endif %}
+
+    {% if has_participation %}
+    <div class="chart-panel">
+        <div class="chart-panel-label">participation{{ info("repo owner vs outside contributors (bots excluded)") }}{{ range_badge(weekly=true) }}{{ maximize() }}</div>
+        {% include "components/chart_participation.html" %}
+    </div>
+    {% endif %}
+
+    {% if has_commits %}
+    <div class="chart-panel">
+        <div class="chart-panel-label">commit velocity{{ info("new commits per day from daily snapshots") }}{{ range_badge() }}{{ maximize() }}</div>
+        {% include "components/chart_commits.html" %}
+    </div>
+    {% endif %}
+
+    {% if has_releases_cadence %}
+    <div class="chart-panel">
+        <div class="chart-panel-label">release cadence{{ info("cumulative releases — each step is a new release") }}{{ range_badge() }}{{ maximize() }}</div>
+        {% include "components/chart_release_cadence.html" %}
+    </div>
+    {% endif %}
+
+</div>
+{% endif %}
+
+{# ── Empty ── #}
+{% if not latest_gh and not matrix %}
+<div class="py-10 text-fg-dim">
+    <p>Awaiting first data collection.</p>
+    <p class="text-xs text-fg-faint mt-1">Data will appear after the next scheduled collection.</p>
+</div>
+{% endif %}
+
+</div>{# /charts #}
+
+{# ── Right sidebar (packaging + traction + secondary stats) ── #}
+<div class="sticky top-14 flex flex-col gap-5">
+
+    {# Secondary GitHub stats #}
+    {% if latest_gh %}
+    <div>
+        <div class="chart-category"><span class="nf">&#xf09b;</span> details</div>
+        <div class="grid grid-cols-2 gap-x-4 gap-y-2 mt-3">
+            <div class="flex justify-between text-xs">
+                <span class="text-fg-dim">issues</span>
+                <span class="text-fg font-medium">{{ "{:,}".format(latest_gh.open_issues - latest_gh.open_prs) }}</span>
+            </div>
+            <div class="flex justify-between text-xs">
+                <span class="text-fg-dim">prs</span>
+                <span class="text-fg font-medium">{{ "{:,}".format(latest_gh.open_prs) }}</span>
+            </div>
+            <div class="flex justify-between text-xs">
+                <span class="text-fg-dim">commits</span>
+                <span class="text-fg font-medium">{{ "{:,}".format(latest_gh.commits_total) }}</span>
+            </div>
+            <div class="flex justify-between text-xs">
+                <span class="text-fg-dim">watchers</span>
+                <span class="text-fg font-medium">{{ "{:,}".format(latest_gh.watchers) }}</span>
+            </div>
+            {% if latest_gh.dependents_repos is not none and (latest_gh.dependents_repos + (latest_gh.dependents_packages or 0)) > 0 %}
+            <div class="flex justify-between text-xs">
+                <span class="text-fg-dim">dependents</span>
+                <span class="text-fg font-medium">{{ "{:,}".format(latest_gh.dependents_repos + (latest_gh.dependents_packages or 0)) }}</span>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+
+    {# Traction #}
+    {% if traction.get('stars_growth_weekly') is not none or traction.get('stars_growth_monthly') is not none or traction.get('issue_close_rate') is not none or traction.get('pr_merge_rate') is not none %}
+    <div>
+        <div class="chart-category"><span class="nf">&#xf0e7;</span> traction</div>
+        <div class="flex flex-col gap-1.5 mt-3">
+            {% if traction.get('stars_growth_weekly') is not none %}
+            <div class="flex justify-between items-baseline text-xs" title="Star growth rate over the past 7 days">
+                <span class="text-fg-dim">stars/wk</span>
+                <span class="text-fg font-medium">{{ traction.stars_growth_weekly }}%</span>
+            </div>
+            {% endif %}
+            {% if traction.get('stars_growth_monthly') is not none %}
+            <div class="flex justify-between items-baseline text-xs" title="Star growth rate over the past 30 days">
+                <span class="text-fg-dim">stars/mo</span>
+                <span class="text-fg font-medium">{{ traction.stars_growth_monthly }}%</span>
+            </div>
+            {% endif %}
+            {% if traction.get('issue_close_rate') is not none %}
+            <div class="flex justify-between items-baseline text-xs" title="Issues closed per issue opened this week">
+                <span class="text-fg-dim">issue close</span>
+                <span class="text-fg font-medium">{{ traction.issue_close_rate }}x</span>
+            </div>
+            {% endif %}
+            {% if traction.get('pr_merge_rate') is not none %}
+            <div class="flex justify-between items-baseline text-xs" title="PRs merged vs opened this week">
+                <span class="text-fg-dim">pr merge</span>
+                <span class="text-fg font-medium">{{ traction.pr_merge_rate }}%</span>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+
+    {# Packaging matrix #}
+    {% if matrix %}
+    <div>
+        <div class="chart-category flex justify-between"><span><span class="nf">&#xf487;</span> packaging</span>
+            {# Count: packaged sources with a version / total possible ecosystems #}
+            {# Language registries only count if project uses them; distro ecosystems always count #}
+            {% set lang_registries = ["pypi", "npm", "crates_io", "rubygems"] %}
+            {% set project_lang_count = matrix|selectattr("source", "in", lang_registries)|list|length %}
+            {# 31 distro/OS ecosystems we track (arch, aur, manjaro, parabola, debian, ubuntu, fedora, epel, opensuse, altlinux, alpine, nix, guix, void, solus, gentoo, chimera, aosc, carbs, pacstall, termux, wakemeops, freebsd, openbsd, openindiana, homebrew, macports, chocolatey, scoop, slackbuilds, terra) #}
+            {% set total_ecosystems = 31 + project_lang_count %}
+            {% set packaged_count = matrix|selectattr("version")|list|length %}
+            <span class="font-normal text-fg-dim">{{ packaged_count }}/{{ total_ecosystems }} ecosystems</span>
+        </div>
+        <div class="mt-3">
+            {% include "components/packaging_matrix.html" %}
+        </div>
+
+        {# Show ecosystems where the project isn't packaged yet #}
+        {% set all_distros = [
+            ("arch", "Arch", "&#xf303;", "#1793d1"),
+            ("aur", "AUR", "&#xf303;", "#1793d1"),
+            ("manjaro", "Manjaro", "&#xf312;", "#35bf5c"),
+            ("parabola", "Parabola", "&#xf303;", ""),
+            ("debian", "Debian", "&#xf306;", "#a80030"),
+            ("ubuntu", "Ubuntu", "&#xf31b;", "#e95420"),
+            ("fedora", "Fedora", "&#xf30a;", "#51a2da"),
+            ("epel", "EPEL", "&#xf30a;", ""),
+            ("opensuse", "openSUSE", "&#xf314;", "#73ba25"),
+            ("altlinux", "ALT Linux", "&#xf17c;", ""),
+            ("terra", "Terra", "&#xf17c;", ""),
+            ("alpine", "Alpine", "&#xf300;", "#0d597f"),
+            ("nix", "Nix", "&#xf313;", "#7ebae4"),
+            ("guix", "GNU Guix", "&#xf17c;", ""),
+            ("void", "Void", "&#xf17c;", "#478061"),
+            ("solus", "Solus", "&#xf17c;", ""),
+            ("gentoo", "Gentoo", "&#xf30d;", "#54487a"),
+            ("chimera", "Chimera", "&#xf17c;", ""),
+            ("aosc", "AOSC", "&#xf17c;", ""),
+            ("carbs", "Carbs", "&#xf17c;", ""),
+            ("pacstall", "Pacstall", "&#xf17c;", ""),
+            ("termux", "Termux", "&#xf489;", ""),
+            ("wakemeops", "WakeMeOps", "&#xf17c;", ""),
+            ("homebrew", "Homebrew", "&#xe711;", "#fbb040"),
+            ("macports", "MacPorts", "&#xe711;", "#d1a752"),
+            ("chocolatey", "Chocolatey", "&#xe70f;", "#80b5e3"),
+            ("scoop", "Scoop", "&#xe70f;", "#9b59b6"),
+            ("freebsd", "FreeBSD", "&#xf30c;", "#ab2b28"),
+            ("openbsd", "OpenBSD", "&#xf30c;", ""),
+            ("openindiana", "OpenIndiana", "&#xf17c;", ""),
+            ("slackbuilds", "SlackBuilds", "&#xf17c;", "#5f4985"),
+        ] %}
+        {# Sources you can submit to yourself vs distro-maintained #}
+        {% set self_submit = ["aur", "homebrew", "homebrew_tap", "chocolatey", "scoop", "nix", "guix", "void", "alpine", "gentoo", "slackbuilds", "pacstall", "termux", "wakemeops"] %}
+        {% set submit_guide = {
+            "aur": "/guides/packaging/aur",
+            "homebrew": "/guides/packaging/homebrew",
+            "homebrew_tap": "/guides/packaging/homebrew_tap",
+            "chocolatey": "/guides/packaging/chocolatey",
+            "scoop": "/guides/packaging/scoop",
+            "nix": "/guides/packaging/nix",
+            "guix": "/guides/packaging/guix",
+            "void": "/guides/packaging/void",
+            "alpine": "/guides/packaging/alpine",
+            "gentoo": "/guides/packaging/gentoo",
+            "slackbuilds": "/guides/packaging/slackbuilds",
+            "pacstall": "/guides/packaging/pacstall",
+            "termux": "/guides/packaging/termux",
+            "wakemeops": "/guides/packaging/wakemeops",
+        } %}
+        {% set present_sources = matrix|map(attribute="source")|list %}
+        {% set missing_self = [] %}
+        {% set missing_distro = [] %}
+        {% for src_id, src_name, src_icon, src_color in all_distros %}
+            {% if src_id not in present_sources %}
+                {% if src_id in self_submit %}
+                    {% set _ = missing_self.append((src_id, src_name, src_icon, src_color)) %}
+                {% else %}
+                    {% set _ = missing_distro.append((src_id, src_name, src_icon, src_color)) %}
+                {% endif %}
+            {% endif %}
+        {% endfor %}
+        {% if missing_self or missing_distro %}
+        <div class="mt-4 pt-3 border-t border-border-subtle">
+            {% if missing_self %}
+            <div class="text-[0.65rem] text-fg-faint mb-1.5">submit yourself</div>
+            <div class="flex flex-wrap gap-1 mb-3">
+                {% for src_id, src_name, src_icon, src_color in missing_self %}
+                {% set guide = submit_guide.get(src_id, "") %}
+                {% if guide %}
+                <a href="{{ guide }}?from=/p/{{ project.github_repo }}" class="inline-flex items-center gap-1 text-[0.65rem] text-fg-faint px-1.5 py-0.5 rounded border border-border-subtle hover:border-border hover:text-fg-dim transition-colors no-underline" title="{{ src_name }} — submission guide">
+                    <span class="nf" style="color:{{ src_color if src_color else 'var(--fg-faint)' }}">{{ src_icon | safe }}</span>
+                    {{ src_name }}
+                </a>
+                {% else %}
+                <span class="inline-flex items-center gap-1 text-[0.65rem] text-fg-faint px-1.5 py-0.5 rounded border border-border-subtle" title="{{ src_name }}">
+                    <span class="nf" style="color:{{ src_color if src_color else 'var(--fg-faint)' }}">{{ src_icon | safe }}</span>
+                    {{ src_name }}
+                </span>
+                {% endif %}
+                {% endfor %}
+            </div>
+            {% endif %}
+            {% if missing_distro %}
+            <div class="text-[0.65rem] text-fg-faint mb-1.5">distro-maintained</div>
+            <div class="flex flex-wrap gap-1">
+                {% for src_id, src_name, src_icon, src_color in missing_distro %}
+                <span class="inline-flex items-center gap-1 text-[0.65rem] text-fg-faint px-1.5 py-0.5 rounded border border-border-subtle" title="{{ src_name }}">
+                    <span class="nf" style="color:{{ src_color if src_color else 'var(--fg-faint)' }}">{{ src_icon | safe }}</span>
+                    {{ src_name }}
+                </span>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+
+</div>{# /sidebar #}
+
+</div>{# /main grid #}
+
+<script>
+// Hide category headers if all their chart panels were hidden by empty-data checks
+document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(function() {
+        var grid = document.querySelector('.chart-grid');
+        if (!grid) return;
+        grid.querySelectorAll('.chart-category').forEach(function(cat) {
+            var sibling = cat.nextElementSibling;
+            var hasVisible = false;
+            while (sibling && !sibling.classList.contains('chart-category')) {
+                if (sibling.classList.contains('chart-panel') && sibling.style.display !== 'none') {
+                    hasVisible = true;
+                    break;
+                }
+                sibling = sibling.nextElementSibling;
+            }
+            if (!hasVisible) cat.style.display = 'none';
+        });
+    }, 50);
+});
+</script>
+<script src="/static/vendor/echarts-5.min.js"></script>
+<script>
+function toggleMax(btn) {
+    var existing = document.querySelector('.chart-overlay');
+    if (existing) {
+        var origId = existing.dataset.origId;
+        existing.remove();
+        var origContainer = document.getElementById(origId);
+        if (origContainer) {
+            var origChart = echarts.getInstanceByDom(origContainer);
+            if (origChart) origChart.resize();
+        }
+        return;
+    }
+    var panel = btn.closest('.chart-panel');
+    var chartEl = panel.querySelector('.chart-container');
+    var chartId = chartEl.id;
+    var origChart = echarts.getInstanceByDom(chartEl);
+    if (!origChart) return;
+    var opts = origChart.getOption();
+
+    var overlay = document.createElement('div');
+    overlay.className = 'chart-overlay';
+    overlay.dataset.origId = chartId;
+
+    var newPanel = document.createElement('div');
+    newPanel.className = 'chart-panel';
+
+    var label = panel.querySelector('.chart-panel-label');
+    if (label) {
+        var newLabel = document.createElement('div');
+        newLabel.className = 'chart-panel-label';
+        newLabel.textContent = label.textContent;
+        newPanel.appendChild(newLabel);
+    }
+
+    var closeBtn = document.createElement('button');
+    closeBtn.className = 'chart-maximize';
+    closeBtn.innerHTML = '&#x2716;';
+    closeBtn.title = 'close';
+    closeBtn.onclick = function() { toggleMax(closeBtn); };
+    newPanel.appendChild(closeBtn);
+
+    var newContainer = document.createElement('div');
+    newContainer.className = 'chart-container';
+    newContainer.id = chartId + '-max';
+    newPanel.appendChild(newContainer);
+    overlay.appendChild(newPanel);
+
+    overlay.addEventListener('click', function(e) {
+        if (e.target === overlay) toggleMax(closeBtn);
+    });
+
+    document.body.appendChild(overlay);
+
+    var maxChart = echarts.init(newContainer);
+    maxChart.setOption(opts);
+}
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        var overlay = document.querySelector('.chart-overlay');
+        if (overlay) {
+            var btn = overlay.querySelector('.chart-maximize');
+            if (btn) toggleMax(btn);
+        }
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,67 @@
+{% if project_data %}
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+    {% for item in project_data %}
+    <a href="/p/{{ item.project.github_repo }}" class="group relative flex flex-col bg-bg-raised border border-border-subtle rounded-md overflow-hidden no-underline text-fg hover:border-border transition-colors">
+        {# Sparkline background #}
+        <svg class="card-sparkline absolute bottom-0 left-0 right-0 h-3/5 pointer-events-none opacity-15" data-values="{{ item.reach_history }}" viewBox="0 0 200 80" preserveAspectRatio="none"></svg>
+
+        {# Content #}
+        <div class="relative z-10 p-5 pb-4 flex-1 flex flex-col">
+            <div class="flex justify-between items-start mb-1.5">
+                <span class="font-medium text-fg-bright text-base">{{ item.project.display_name }}</span>
+                <div class="text-right">
+                    <div class="text-xl xl:text-2xl font-semibold text-fg-bright leading-tight">{{ "{:,}".format(item.reach) }}</div>
+                    <div class="text-[0.55rem] text-fg-faint uppercase tracking-wider">reach</div>
+                </div>
+            </div>
+            <div class="text-sm text-fg-dim mb-1.5">{{ item.project.github_repo }}</div>
+            {% if item.project.description %}
+            <div class="text-sm text-fg-dim leading-relaxed line-clamp-2 mb-auto">{{ item.project.description }}</div>
+            {% endif %}
+        </div>
+
+        {# Footer stats #}
+        <div class="relative z-10 flex items-center px-5 py-2.5 border-t border-border-subtle text-sm text-fg-dim gap-4">
+            <span><span class="text-fg font-medium">{{ item.stars }}</span> stars</span>
+            <span><span class="text-fg font-medium">{{ item.sources }}</span> pkgs</span>
+            <span><span class="text-fg font-medium">{{ item.downloads }}</span> dl/mo</span>
+        </div>
+    </a>
+    {% endfor %}
+</div>
+<script>
+document.querySelectorAll('.card-sparkline').forEach(function(svg) {
+    var values = JSON.parse(svg.dataset.values || '[]');
+    if (values.length < 2) return;
+    var min = Math.min.apply(null, values);
+    var max = Math.max.apply(null, values);
+    var range = max - min || 1;
+    var w = 200, h = 80, pad = 4;
+    var points = values.map(function(v, i) {
+        var x = (i / (values.length - 1)) * w;
+        var y = pad + (1 - (v - min) / range) * (h - pad * 2);
+        return x + ',' + y;
+    });
+    var line = points.join(' L');
+    var area = points.join(' L') + ' L' + w + ',' + h + ' L0,' + h + 'Z';
+    var defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+    defs.innerHTML = '<linearGradient id="spark-g-' + Math.random().toString(36).slice(2) + '" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#5eead4" stop-opacity="0.6"/><stop offset="100%" stop-color="#5eead4" stop-opacity="0"/></linearGradient>';
+    svg.appendChild(defs);
+    var gradId = defs.firstChild.id;
+    var fillPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    fillPath.setAttribute('d', 'M' + area);
+    fillPath.setAttribute('fill', 'url(#' + gradId + ')');
+    svg.appendChild(fillPath);
+    var strokePath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    strokePath.setAttribute('d', 'M' + line);
+    strokePath.setAttribute('fill', 'none');
+    strokePath.setAttribute('stroke', '#5eead4');
+    strokePath.setAttribute('stroke-width', '1.5');
+    svg.appendChild(strokePath);
+});
+</script>
+{% else %}
+<div class="py-10 text-fg-dim">
+    <p>No projects yet. Add one to start tracking.</p>
+</div>
+{% endif %}

@@ -1,0 +1,85 @@
+<div id="chart-dependents" class="chart-container"></div>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var chart = echarts.init(document.getElementById('chart-dependents'));
+    var allSeries = {{ dependents_series | safe }};
+    var palette = ['#eab308', '#3b82f6', '#8b5cf6', '#06b6d4'];
+    var f = "'IBM Plex Mono', monospace";
+    if (allSeries.length === 0) return;
+
+    // Find max value per series to decide which needs its own axis
+    var maxVals = allSeries.map(function(s) {
+        return Math.max.apply(null, s.data.map(function(d) { return d.value; }));
+    });
+    var globalMax = Math.max.apply(null, maxVals);
+
+    // Series whose max is < 1% of the largest get the right Y-axis
+    var needsDualY = allSeries.length > 1 && maxVals.some(function(v) {
+        return v > 0 && v < globalMax * 0.1;
+    });
+
+    var series = allSeries.map(function(s, i) {
+        var c = palette[i % palette.length];
+        var useRight = needsDualY && maxVals[i] < globalMax * 0.1;
+        return {
+            name: s.name,
+            type: 'line',
+            yAxisIndex: useRight ? 1 : 0,
+            smooth: false,
+            showSymbol: s.data.length <= 30,
+            symbolSize: 3,
+            lineStyle: { width: 1.5, color: c },
+            itemStyle: { color: c },
+            data: s.data.map(function(d) { return [d.date, d.value]; })
+        };
+    });
+    var dates = allSeries[0].data.map(function(d) { return d.date; });
+
+    var yAxes = [{
+        type: 'value',
+        scale: true,
+        boundaryGap: ['10%', '10%'],
+        axisLine: { show: false },
+        axisLabel: { color: '#9090a0', fontFamily: f, fontSize: 10 },
+        splitLine: { lineStyle: { color: '#2a2a36' } }
+    }];
+    if (needsDualY) {
+        yAxes.push({
+            type: 'value',
+            scale: true,
+            boundaryGap: ['10%', '10%'],
+            axisLine: { show: false },
+            axisLabel: { color: '#9090a0', fontFamily: f, fontSize: 10 },
+            splitLine: { show: false }
+        });
+    }
+
+    chart.setOption({
+        backgroundColor: 'transparent',
+        tooltip: {
+            trigger: 'axis',
+            backgroundColor: '#1c1c24',
+            borderColor: '#363642',
+            padding: [8, 12],
+            textStyle: { color: '#d4d4dc', fontFamily: f, fontSize: 11 }
+        },
+        legend: {
+            data: allSeries.map(function(s) { return s.name; }),
+            textStyle: { color: '#9090a0', fontFamily: f, fontSize: 10 },
+            top: 0, right: 0,
+            itemWidth: 12, itemHeight: 2
+        },
+        grid: { left: 48, right: needsDualY ? 48 : 16, top: 28, bottom: 24 },
+        xAxis: {
+            type: 'category',
+            data: dates,
+            axisLine: { lineStyle: { color: '#363642' } },
+            axisLabel: { color: '#9090a0', fontFamily: f, fontSize: 10 },
+            axisTick: { show: false }
+        },
+        yAxis: yAxes,
+        series: series
+    });
+    window.addEventListener('resize', function() { chart.resize(); });
+});
+</script>

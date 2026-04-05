@@ -1,0 +1,201 @@
+{# Source icon mapping (Nerd Font codepoints) #}
+{% set source_icon = {
+    "pypi": "&#xe73c;",
+    "npm": "&#xe71e;",
+    "crates_io": "&#xe7a8;",
+    "rubygems": "&#xe791;",
+    "arch": "&#xf303;",
+    "aur": "&#xf303;",
+    "manjaro": "&#xf312;",
+    "parabola": "&#xf303;",
+    "debian": "&#xf306;",
+    "ubuntu": "&#xf31b;",
+    "fedora": "&#xf30a;",
+    "epel": "&#xf30a;",
+    "opensuse": "&#xf314;",
+    "altlinux": "&#xf17c;",
+    "homebrew": "&#xe711;",
+    "homebrew_tap": "&#xe711;",
+    "macports": "&#xe711;",
+    "chocolatey": "&#xe70f;",
+    "scoop": "&#xe70f;",
+    "freebsd": "&#xf30c;",
+    "openbsd": "&#xf30c;",
+    "openindiana": "&#xf17c;",
+    "alpine": "&#xf300;",
+    "nix": "&#xf313;",
+    "void": "&#xf17c;",
+    "gentoo": "&#xf30d;",
+    "solus": "&#xf17c;",
+    "chimera": "&#xf17c;",
+    "terra": "&#xf17c;",
+    "guix": "&#xf17c;",
+    "wakemeops": "&#xf17c;",
+    "pacstall": "&#xf17c;",
+    "aosc": "&#xf17c;",
+    "carbs": "&#xf17c;",
+    "termux": "&#xf489;",
+    "slackbuilds": "&#xf17c;",
+} %}
+{# Brand colors for sources that have links #}
+{% set source_color = {
+    "pypi": "#3775a9",
+    "npm": "#cb3837",
+    "crates_io": "#e6832a",
+    "rubygems": "#e9573f",
+    "arch": "#1793d1",
+    "aur": "#1793d1",
+    "manjaro": "#35bf5c",
+    "debian": "#a80030",
+    "ubuntu": "#e95420",
+    "fedora": "#51a2da",
+    "opensuse": "#73ba25",
+    "alpine": "#0d597f",
+    "nix": "#7ebae4",
+    "void": "#478061",
+    "gentoo": "#54487a",
+    "homebrew": "#fbb040",
+    "homebrew_tap": "#fbb040",
+    "macports": "#d1a752",
+    "chocolatey": "#80b5e3",
+    "scoop": "#9b59b6",
+    "freebsd": "#ab2b28",
+    "slackbuilds": "#5f4985",
+} %}
+{# Group icon mapping #}
+{% set group_icon = {
+    "Registries": "&#xf121;",
+    "Arch": "&#xf303;",
+    "Debian / Ubuntu": "&#xf306;",
+    "RPM": "&#xf30a;",
+    "macOS": "&#xe711;",
+    "Windows": "&#xe70f;",
+    "BSD": "&#xf30c;",
+    "Other": "&#xf17c;",
+} %}
+{% set groups = [
+    ("Registries", ["pypi", "npm", "crates_io", "rubygems"]),
+    ("Arch", ["arch", "aur", "manjaro", "parabola"]),
+    ("Debian / Ubuntu", ["debian", "ubuntu"]),
+    ("RPM", ["fedora", "epel", "opensuse", "altlinux"]),
+    ("macOS", ["homebrew", "homebrew_tap", "macports"]),
+    ("Windows", ["chocolatey", "scoop"]),
+    ("BSD", ["freebsd", "openbsd", "openindiana"]),
+    ("Other", ["alpine", "nix", "void", "gentoo", "solus", "chimera", "terra", "guix", "wakemeops", "pacstall", "aosc", "carbs", "termux", "slackbuilds"]),
+] %}
+{# URL templates for package pages — {pkg} is replaced with package_name #}
+{% set source_url = {
+    "pypi": "https://pypi.org/project/{pkg}",
+    "npm": "https://www.npmjs.com/package/{pkg}",
+    "crates_io": "https://crates.io/crates/{pkg}",
+    "rubygems": "https://rubygems.org/gems/{pkg}",
+    "arch": "https://archlinux.org/packages/?q={pkg}",
+    "aur": "https://aur.archlinux.org/packages/{pkg}",
+    "manjaro": "https://manjaristas.org/branch_compare?q={pkg}",
+    "debian": "https://packages.debian.org/search?keywords={pkg}",
+    "ubuntu": "https://packages.ubuntu.com/search?keywords={pkg}",
+    "fedora": "https://packages.fedoraproject.org/pkgs/{pkg}",
+    "opensuse": "https://software.opensuse.org/package/{pkg}",
+    "alpine": "https://pkgs.alpinelinux.org/packages?name={pkg}",
+    "nix": "https://search.nixos.org/packages?query={pkg}",
+    "void": "https://voidlinux.org/packages/?q={pkg}",
+    "gentoo": "https://packages.gentoo.org/packages/search?q={pkg}",
+    "homebrew": "https://formulae.brew.sh/formula/{pkg}",
+    "macports": "https://ports.macports.org/port/{pkg}",
+    "chocolatey": "https://community.chocolatey.org/packages/{pkg}",
+    "scoop": "https://scoop.sh/#/apps?q={pkg}",
+    "freebsd": "https://www.freshports.org/search.php?query={pkg}",
+    "slackbuilds": "https://slackbuilds.org/result/?search={pkg}",
+} %}
+{# Determine project name for package name comparison #}
+{% set proj_name = project.display_name | lower if project is defined else "" %}
+{# All known sources (for catch-all) #}
+{% set known = [] %}
+{% for _, gsources in groups %}
+    {% for s in gsources %}
+        {% set _ = known.append(s) %}
+    {% endfor %}
+{% endfor %}
+
+{# Macro for rendering a package row #}
+{% macro pkg_row(row) %}
+{% set display_source = "homebrew" if row.source == "homebrew_tap" else row.source %}
+{# homebrew_tap: link to the GitHub tap repo (first two path segments) #}
+{% if row.source == "homebrew_tap" %}
+    {% set tap_parts = row.package_name.split("/") %}
+    {% if tap_parts | length >= 2 %}
+        {% set pkg_url = "https://github.com/" ~ tap_parts[0] ~ "/" ~ tap_parts[1] %}
+    {% else %}
+        {% set pkg_url = "" %}
+    {% endif %}
+{% else %}
+    {% set pkg_url = source_url.get(row.source, "") | replace("{pkg}", row.package_name) %}
+{% endif %}
+{% set icon_color = source_color.get(row.source, "") if pkg_url else "var(--fg-dim)" %}
+<tr class="{% if pkg_url %}pkg-row-link{% endif %}">
+    <td>
+        {% if pkg_url %}<a href="{{ pkg_url }}" target="_blank" class="pkg-link pkg-link-row">{% endif %}
+        <span class="nf" style="color:{{ icon_color if icon_color else 'var(--fg-dim)' }}">{{ source_icon.get(row.source, "&#xf17c;") | safe }}</span>
+        {{ display_source }}
+        {%- if row.package_name | lower != proj_name %} <span style="color:var(--fg-faint)">{{ row.package_name }}</span>{% endif %}
+        {% if pkg_url %}</a>{% endif %}
+    </td>
+    <td>
+        {% if row.source == "aur" and row.package_name.endswith("-git") %}
+            <span class="dot dot-gray"></span><span style="color:var(--fg-dim)">HEAD</span>
+        {% elif row.version %}
+            {% if row.freshness == "current" %}<span class="dot dot-green"></span>
+            {% elif row.freshness == "outdated" %}<span class="dot dot-red"></span>
+            {% else %}<span class="dot dot-gray"></span>
+            {% endif %}
+            {{ row.version }}
+        {% else %}
+            <span style="color:var(--fg-faint)">&mdash;</span>
+        {% endif %}
+    </td>
+</tr>
+{% endmacro %}
+
+<div class="table-wrap">
+    <table>
+        <thead>
+            <tr>
+                <th>Source</th>
+                <th>Version</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for gname, gsources in groups %}
+                {% set ns = namespace(has_rows=false) %}
+                {% for row in matrix if row.source in gsources %}
+                    {% if not ns.has_rows %}
+                        <tr class="pkg-group"><td colspan="2"><span class="nf">{{ group_icon.get(gname, "&#xf17c;") | safe }}</span> {{ gname }}</td></tr>
+                        {% set ns.has_rows = true %}
+                    {% endif %}
+                    {{ pkg_row(row) }}
+                {% endfor %}
+            {% endfor %}
+            {# Catch any sources not in known groups #}
+            {% set ns = namespace(has_other=false) %}
+            {% for row in matrix if row.source not in known %}
+                {% if not ns.has_other %}
+                    <tr class="pkg-group"><td colspan="2"><span class="nf">&#xf17c;</span> Other</td></tr>
+                    {% set ns.has_other = true %}
+                {% endif %}
+                {{ pkg_row(row) }}
+            {% endfor %}
+            {% if release_artifact_types is defined and release_artifact_types %}
+            <tr class="pkg-group"><td colspan="2"><span class="nf">&#xf408;</span> Release Artifacts</td></tr>
+            <tr>
+                <td colspan="2">
+                    {% if project.github_repo %}<a href="https://github.com/{{ project.github_repo }}/releases" target="_blank" class="pkg-link">{% endif %}
+                    {%- for t in release_artifact_types -%}
+                        <span class="artifact-chip">{{ t }}</span>
+                    {%- endfor -%}
+                    {% if project.github_repo %}</a>{% endif %}
+                </td>
+            </tr>
+            {% endif %}
+        </tbody>
+    </table>
+</div>

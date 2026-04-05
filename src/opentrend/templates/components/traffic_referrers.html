@@ -1,0 +1,20 @@
+{% if referrer_table %}
+<table class="referrer-table">
+    <thead>
+        <tr>
+            <th>Referrer</th>
+            <th>Views</th>
+            <th>Unique</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for ref in referrer_table %}
+        <tr>
+            <td>{{ ref.referrer }}</td>
+            <td>{{ "{:,}".format(ref.views) }}</td>
+            <td>{{ "{:,}".format(ref.unique_visitors) }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endif %}

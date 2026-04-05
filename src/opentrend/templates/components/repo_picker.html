@@ -1,0 +1,62 @@
+{% if repos %}
+<div id="repo-typeahead">
+    <div class="flex items-center gap-3 mb-3">
+        <input type="text" id="repo-search" placeholder="Filter {{ repos|length }} repositories..." autocomplete="off" class="flex-1">
+        <span class="text-fg-faint text-xs shrink-0" id="repo-count">{{ repos|length }} repos</span>
+    </div>
+    {% set initial_limit = 12 %}
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2" id="repo-grid">
+        {% for repo in repos %}
+        <label class="repo-card group relative flex flex-col border border-border-subtle rounded-md px-3.5 py-2.5 cursor-pointer hover:border-border transition-colors has-[:checked]:border-accent-teal/50 has-[:checked]:bg-accent-teal/5{% if loop.index > initial_limit %} hidden-overflow{% endif %}"
+               data-name="{{ repo.full_name|lower }}"{% if loop.index > initial_limit %} style="display:none"{% endif %}>
+            <input type="radio" name="github_repo" value="{{ repo.full_name }}" required class="sr-only">
+            <div class="flex items-center gap-2 mb-0.5">
+                <span class="text-fg-bright text-sm font-medium group-has-[:checked]:text-accent-teal truncate">{{ repo.full_name }}</span>
+                {% if repo.fork %}<span class="text-fg-faint text-[0.6rem] border border-border-subtle rounded px-1 shrink-0">fork</span>{% endif %}
+            </div>
+            {% if repo.description %}
+            <div class="text-fg-dim text-xs leading-relaxed line-clamp-1">{{ repo.description[:100] }}</div>
+            {% endif %}
+            <div class="flex items-center gap-3 mt-1 text-fg-faint text-xs">
+                {% if repo.stars %}<span>&#9733; {{ repo.stars }}</span>{% endif %}
+            </div>
+        </label>
+        {% endfor %}
+    </div>
+    {% if repos|length > initial_limit %}
+    <button type="button" id="show-all-btn" class="mt-3 text-fg-dim text-xs hover:text-fg transition-colors bg-transparent border border-border-subtle rounded px-3 py-1.5 cursor-pointer" onclick="showAllRepos()">show all {{ repos|length }} repos</button>
+    {% endif %}
+</div>
+
+<script>
+(function() {
+    var search = document.getElementById('repo-search');
+    var counter = document.getElementById('repo-count');
+    var cards = document.querySelectorAll('.repo-card');
+    var showBtn = document.getElementById('show-all-btn');
+    var total = cards.length;
+    var expanded = false;
+
+    search.addEventListener('input', function() {
+        var q = this.value.toLowerCase();
+        var visible = 0;
+        cards.forEach(function(card) {
+            var match = card.dataset.name.includes(q);
+            card.style.display = match ? '' : 'none';
+            if (match) visible++;
+        });
+        counter.textContent = visible + '/' + total + ' repos';
+        if (showBtn) showBtn.style.display = q ? 'none' : (expanded ? 'none' : '');
+    });
+
+    window.showAllRepos = function() {
+        expanded = true;
+        cards.forEach(function(card) { card.style.display = ''; });
+        if (showBtn) showBtn.style.display = 'none';
+        counter.textContent = total + ' repos';
+    };
+})();
+</script>
+{% else %}
+<div class="text-fg-dim text-sm py-4">No repositories found.</div>
+{% endif %}

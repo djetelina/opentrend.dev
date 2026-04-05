@@ -1,0 +1,38 @@
+[project]
+name = "opentrend"
+version = "0.1.0"
+description = "Open source project metrics dashboard"
+readme = {text = "", content-type = "text/plain"}
+authors = [
+    { name = "David Jetelina" }
+]
+requires-python = ">=3.14"
+dependencies = [
+    "alembic>=1.18.4",
+    "apscheduler>=3.11.2",
+    "asyncpg>=0.31.0",
+    "cryptography>=46.0.6",
+    "defusedxml>=0.7.1",
+    "litestar[jinja,prometheus,sqlalchemy]>=2.21.1",
+    "markdown>=3.10.2",
+    "niquests>=3.18.4",
+    "packaging>=25.0",
+    "psycopg2-binary>=2.9.11",
+    "python-frontmatter>=1.1.0",
+    "pyyaml>=6.0.3",
+    "sqlalchemy[asyncio]>=2.0.49",
+    "structlog>=25.5.0",
+    "uvicorn>=0.43.0",
+]
+
+[build-system]
+requires = ["uv_build>=0.11.2,<0.12.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "httpx>=0.28.1",
+    "pytest>=9.0.2",
+    "pytest-asyncio>=1.3.0",
+    "ruff>=0.11.11",
+]

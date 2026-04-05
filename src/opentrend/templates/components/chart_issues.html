@@ -1,0 +1,87 @@
+<div id="chart-issues" class="chart-container"></div>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var chart = echarts.init(document.getElementById('chart-issues'));
+    var openData = {{ open_issues_series | safe }};
+    var closedData = {{ closed_issues_series | safe }};
+    var dates = openData.map(function(d) { return d.date; });
+    var f = "'IBM Plex Mono', monospace";
+    chart.setOption({
+        backgroundColor: 'transparent',
+        tooltip: {
+            trigger: 'axis',
+            backgroundColor: '#1c1c24',
+            borderColor: '#363642',
+            padding: [8, 12],
+            textStyle: { color: '#d4d4dc', fontFamily: f, fontSize: 11 }
+        },
+        legend: {
+            data: ['Open', 'Closed'],
+            textStyle: { color: '#9090a0', fontFamily: f, fontSize: 10 },
+            top: 0, right: 0,
+            itemWidth: 12, itemHeight: 2
+        },
+        grid: { left: 48, right: 48, top: 28, bottom: 24 },
+        xAxis: {
+            type: 'category',
+            data: dates,
+            axisLine: { lineStyle: { color: '#363642' } },
+            axisLabel: { color: '#9090a0', fontFamily: f, fontSize: 10 },
+            axisTick: { show: false }
+        },
+        yAxis: [
+            {
+                type: 'value',
+                scale: true,
+                boundaryGap: ['10%', '10%'],
+                axisLine: { show: false },
+                axisLabel: { color: '#ef4444', fontFamily: f, fontSize: 10 },
+                splitLine: { lineStyle: { color: '#2a2a36' } }
+            },
+            {
+                type: 'value',
+                scale: true,
+                boundaryGap: ['10%', '10%'],
+                axisLine: { show: false },
+                axisLabel: { color: '#22c55e', fontFamily: f, fontSize: 10 },
+                splitLine: { show: false }
+            }
+        ],
+        series: [
+            {
+                name: 'Open',
+                type: 'line',
+                yAxisIndex: 0,
+                data: openData.map(function(d) { return d.value; }),
+                smooth: false,
+                showSymbol: false,
+                lineStyle: { color: '#ef4444', width: 1.5 },
+                itemStyle: { color: '#ef4444' },
+                areaStyle: {
+                    color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                        { offset: 0, color: 'rgba(239,68,68,0.2)' },
+                        { offset: 1, color: 'rgba(239,68,68,0.02)' }
+                    ])
+                }
+            },
+            {
+                name: 'Closed',
+                type: 'line',
+                yAxisIndex: 1,
+                data: closedData.map(function(d) { return d.value; }),
+                smooth: false,
+                showSymbol: false,
+                lineStyle: { color: '#22c55e', width: 1.5 },
+                itemStyle: { color: '#22c55e' },
+                areaStyle: {
+                    color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                        { offset: 0, color: 'rgba(34,197,94,0.15)' },
+                        { offset: 1, color: 'rgba(34,197,94,0.02)' }
+                    ])
+                }
+            }
+        ]
+    });
+    window.addEventListener('resize', function() { chart.resize(); });
+});
+</script>

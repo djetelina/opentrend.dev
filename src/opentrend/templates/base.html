@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}opentrend.dev{% endblock %}</title>
+    <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+    <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
+    <link rel="stylesheet" href="/static/css/tailwind.css">
+    <link rel="stylesheet" href="/static/css/style.css">
+    <script src="/static/vendor/htmx-2.0.4.min.js"></script>
+</head>
+<body class="bg-bg text-fg font-mono text-sm lg:text-base antialiased min-h-screen">
+    {% include "components/nav.html" %}
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+    {% include "components/footer.html" %}
+<script>
+(function() {
+    // HTMX: add CSRF token from meta tag to all requests
+    document.body.addEventListener('htmx:configRequest', function(e) {
+        var input = document.querySelector('input[name="_csrf_token"]');
+        if (input) e.detail.headers['x-csrftoken'] = input.value;
+    });
+})();
+</script>
+</body>
+</html>

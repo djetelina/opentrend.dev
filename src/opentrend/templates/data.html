@@ -1,0 +1,437 @@
+{% extends "base.html" %}
+{% block title %}Data We Collect — opentrend.dev{% endblock %}
+{% block content %}
+<div class="px-8 lg:px-12 xl:px-16 py-8">
+    <h1 class="text-3xl font-semibold text-fg-bright tracking-tight mb-2">data we collect</h1>
+    <p class="text-fg-dim mb-10 max-w-2xl">Everything OpenTrend fetches, tracks, and computes for each project. All data is collected daily. <strong class="text-fg">Your data is not for sale.</strong></p>
+
+    {# ── GitHub ── #}
+    <section class="mb-12">
+        <h2 class="text-lg font-medium text-fg-bright mb-1 flex items-center gap-2">
+            <span class="nf text-fg-dim">&#xf408;</span> GitHub
+        </h2>
+        <p class="text-fg-dim text-sm mb-4">Via GitHub REST API and web scraping. Requires the project's GitHub repository.</p>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <div>
+                <h3 class="text-sm font-medium text-fg-bright mb-2">Repository metrics</h3>
+                <ul class="text-sm text-fg-dim space-y-1">
+                    <li>Stars, forks, watchers</li>
+                    <li>Open &amp; closed issues</li>
+                    <li>Open &amp; merged pull requests</li>
+                    <li>Total contributors</li>
+                    <li>Total commits</li>
+                    <li>License (SPDX)</li>
+                    <li>Release count, latest tag &amp; date</li>
+                </ul>
+            </div>
+            <div>
+                <h3 class="text-sm font-medium text-fg-bright mb-2">Weekly statistics</h3>
+                <ul class="text-sm text-fg-dim space-y-1">
+                    <li>Commit activity (per week)</li>
+                    <li>Code frequency (additions &amp; deletions)</li>
+                    <li>Participation (owner vs community)</li>
+                </ul>
+                <h3 class="text-sm font-medium text-fg-bright mb-2 mt-4">Dependents</h3>
+                <ul class="text-sm text-fg-dim space-y-1">
+                    <li>Dependent repositories count</li>
+                    <li>Dependent packages count</li>
+                </ul>
+                <p class="text-fg-faint text-xs mt-1">Scraped from dependency graph. Includes end-user apps, not just libraries.</p>
+            </div>
+            <div>
+                <h3 class="text-sm font-medium text-fg-bright mb-2">Release downloads</h3>
+                <ul class="text-sm text-fg-dim space-y-1">
+                    <li>Per-asset download counts per release</li>
+                    <li>Artifact type detection (.deb, .rpm, .apk, .msi, etc.)</li>
+                </ul>
+            </div>
+            <div>
+                <h3 class="text-sm font-medium text-fg-bright mb-2">Traffic</h3>
+                <ul class="text-sm text-fg-dim space-y-1">
+                    <li>Clones &amp; unique clones per day</li>
+                    <li>Page views &amp; unique viewers per day</li>
+                    <li>Top referrers (source, views, uniques)</li>
+                </ul>
+                <p class="text-fg-faint text-xs mt-1">GitHub retains traffic for 14 days only.</p>
+            </div>
+        </div>
+    </section>
+
+    {# ── Package Registries ── #}
+    <section class="mb-12">
+        <h2 class="text-lg font-medium text-fg-bright mb-1 flex items-center gap-2">
+            <span class="nf text-fg-dim">&#xf121;</span> Package Registries
+        </h2>
+        <p class="text-fg-dim text-sm mb-4">Language-specific package managers. Each provides different data.</p>
+
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+                <thead>
+                    <tr class="text-left text-fg-faint border-b border-border-subtle">
+                        <th class="py-2 pr-6 font-medium">Registry</th>
+                        <th class="py-2 pr-6 font-medium">Version</th>
+                        <th class="py-2 pr-6 font-medium">Downloads</th>
+                        <th class="py-2 pr-6 font-medium">Dependents</th>
+                        <th class="py-2 font-medium">Other</th>
+                    </tr>
+                </thead>
+                <tbody class="text-fg-dim">
+                    <tr class="border-b border-border-subtle/50">
+                        <td class="py-2 pr-6 text-fg-bright"><span class="nf" style="color:#cb3837">&#xe71e;</span> npm</td>
+                        <td class="py-2 pr-6">&#x2713;</td>
+                        <td class="py-2 pr-6">daily, weekly, monthly</td>
+                        <td class="py-2 pr-6">&#x2713;</td>
+                        <td class="py-2">version count</td>
+                    </tr>
+                    <tr class="border-b border-border-subtle/50">
+                        <td class="py-2 pr-6 text-fg-bright"><span class="nf" style="color:#3775a9">&#xe73c;</span> PyPI</td>
+                        <td class="py-2 pr-6">&#x2713;</td>
+                        <td class="py-2 pr-6">daily, weekly, monthly</td>
+                        <td class="py-2 pr-6 text-fg-faint">&mdash;</td>
+                        <td class="py-2">version count</td>
+                    </tr>
+                    <tr class="border-b border-border-subtle/50">
+                        <td class="py-2 pr-6 text-fg-bright"><span class="nf" style="color:#e76f00">&#xe256;</span> Maven Central</td>
+                        <td class="py-2 pr-6">&#x2713;</td>
+                        <td class="py-2 pr-6 text-fg-faint">&mdash;</td>
+                        <td class="py-2 pr-6 text-fg-faint">&mdash;</td>
+                        <td class="py-2">version count <span class="text-fg-faint text-xs">(no download stats)</span></td>
+                    </tr>
+                    <tr class="border-b border-border-subtle/50">
+                        <td class="py-2 pr-6 text-fg-bright"><span class="nf" style="color:#512bd4">&#xf02d3;</span> NuGet</td>
+                        <td class="py-2 pr-6">&#x2713;</td>
+                        <td class="py-2 pr-6">total</td>
+                        <td class="py-2 pr-6 text-fg-faint">&mdash;</td>
+                        <td class="py-2">version count</td>
+                    </tr>
+                    <tr class="border-b border-border-subtle/50">
+                        <td class="py-2 pr-6 text-fg-bright"><span class="nf" style="color:#79d4fd">&#xe627;</span> Go (proxy)</td>
+                        <td class="py-2 pr-6">&#x2713;</td>
+                        <td class="py-2 pr-6 text-fg-faint">&mdash;</td>
+                        <td class="py-2 pr-6 text-fg-faint">&mdash;</td>
+                        <td class="py-2">version count <span class="text-fg-faint text-xs">(no download stats)</span></td>
+                    </tr>
+                    <tr class="border-b border-border-subtle/50">
+                        <td class="py-2 pr-6 text-fg-bright"><span class="nf" style="color:#777bb4">&#xe608;</span> Packagist</td>
+                        <td class="py-2 pr-6">&#x2713;</td>
+                        <td class="py-2 pr-6">daily, monthly, total</td>
+                        <td class="py-2 pr-6">&#x2713;</td>
+                        <td class="py-2">version count</td>
+                    </tr>
+                    <tr class="border-b border-border-subtle/50">
+                        <td class="py-2 pr-6 text-fg-bright"><span class="nf" style="color:#e9573f">&#xe791;</span> RubyGems</td>
+                        <td class="py-2 pr-6">&#x2713;</td>
+                        <td class="py-2 pr-6">latest version, total</td>
+                        <td class="py-2 pr-6">&#x2713;</td>
+                        <td class="py-2">version count</td>
+                    </tr>
+                    <tr>
+                        <td class="py-2 pr-6 text-fg-bright"><span class="nf" style="color:#e6832a">&#xe7a8;</span> Crates.io</td>
+                        <td class="py-2 pr-6">&#x2713;</td>
+                        <td class="py-2 pr-6">recent, total</td>
+                        <td class="py-2 pr-6">&#x2713;</td>
+                        <td class="py-2">version count</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    {# ── OS Package Managers ── #}
+    <section class="mb-12">
+        <h2 class="text-lg font-medium text-fg-bright mb-1 flex items-center gap-2">
+            <span class="nf text-fg-dim">&#xf17c;</span> OS Packages &amp; Distros
+        </h2>
+        <p class="text-fg-dim text-sm mb-4">Version tracking across 25+ distribution repositories. Most provide version only; some also have downloads or community metrics.</p>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead>
+                        <tr class="text-left text-fg-faint border-b border-border-subtle">
+                            <th class="py-2 pr-4 font-medium">Source</th>
+                            <th class="py-2 font-medium">Extra data</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-fg-dim">
+                        <tr class="border-b border-border-subtle/50">
+                            <td class="py-2 pr-4 text-fg-bright"><span class="nf" style="color:#fbb040">&#xe711;</span> Homebrew</td>
+                            <td class="py-2">monthly installs</td>
+                        </tr>
+                        <tr class="border-b border-border-subtle/50">
+                            <td class="py-2 pr-4 text-fg-bright"><span class="nf" style="color:#1793d1">&#xf303;</span> AUR</td>
+                            <td class="py-2">votes, popularity, dependents</td>
+                        </tr>
+                        <tr>
+                            <td class="py-2 pr-4 text-fg-bright"><span class="nf" style="color:#80b5e3">&#xe70f;</span> Chocolatey</td>
+                            <td class="py-2">total downloads</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div>
+                <h3 class="text-sm font-medium text-fg-faint mb-2">Version only</h3>
+                <p class="text-sm text-fg-dim leading-relaxed">
+                    Arch, Manjaro, Parabola, Debian, Ubuntu, Fedora, openSUSE, Alpine, NixOS, Void, Gentoo, FreeBSD, OpenBSD, MacPorts, Scoop, Homebrew Tap, Termux, Chimera, SlackBuilds, WakeMeOps
+                </p>
+            </div>
+        </div>
+    </section>
+
+    {# ── Reach Score ── #}
+    <section class="mb-12">
+        <h2 class="text-lg font-medium text-fg-bright mb-1 flex items-center gap-2">
+            <span class="nf text-fg-dim">&#xf1ec;</span> Reach Score
+        </h2>
+        <p class="text-fg-dim text-sm mb-5">Composite metric that summarizes a project's overall visibility. Computed daily.</p>
+
+        <div class="grid grid-cols-1 xl:grid-cols-[1fr_2fr] gap-6">
+            {# Formula #}
+            <div class="bg-bg-raised border border-border-subtle rounded-md p-5 self-start">
+                <div class="text-sm mb-3 text-fg-faint uppercase tracking-wider" style="font-size:0.65rem">Formula</div>
+                <pre class="text-fg text-sm leading-relaxed"><span class="text-fg-dim">reach =</span>
+  sqrt(<span class="text-accent-teal">stars</span>)        <span class="text-fg-faint">× 30</span>
++ sqrt(<span class="text-accent-teal">forks</span>)        <span class="text-fg-faint">× 20</span>
++ ln(1+<span class="text-accent-teal">contributors</span>) <span class="text-fg-faint">× 40</span>
++ ln(1+<span class="text-accent-teal">watchers</span>)     <span class="text-fg-faint">× 20</span>
++ ln(1+<span class="text-accent-teal">sources</span>)      <span class="text-fg-faint">× 50</span>
++ ln(1+<span class="text-accent-teal">downloads</span>)    <span class="text-fg-faint">× 20</span>
++ ln(1+<span class="text-accent-teal">dependents</span>)   <span class="text-fg-faint">× 40</span>
++ ln(1+<span class="text-accent-teal">views</span>)        <span class="text-fg-faint">× 15</span>
++ ln(1+<span class="text-accent-teal">clones</span>)       <span class="text-fg-faint">× 15</span></pre>
+            </div>
+
+            {# Breakdown table #}
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead>
+                        <tr class="text-left text-fg-faint border-b border-border-subtle">
+                            <th class="py-2 pr-4 font-medium">Input</th>
+                            <th class="py-2 pr-4 font-medium">Scale</th>
+                            <th class="py-2 pr-4 font-medium">Weight</th>
+                            <th class="py-2 font-medium">Source</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-fg-dim">
+                        <tr class="border-b border-border-subtle/50">
+                            <td class="py-2 pr-4 text-fg">Stars</td>
+                            <td class="py-2 pr-4"><span class="text-accent-teal">&#x221A;</span></td>
+                            <td class="py-2 pr-4">30</td>
+                            <td class="py-2">GitHub API <span class="text-fg-faint">— cumulative, current total</span></td>
+                        </tr>
+                        <tr class="border-b border-border-subtle/50">
+                            <td class="py-2 pr-4 text-fg">Forks</td>
+                            <td class="py-2 pr-4"><span class="text-accent-teal">&#x221A;</span></td>
+                            <td class="py-2 pr-4">20</td>
+                            <td class="py-2">GitHub API <span class="text-fg-faint">— cumulative, current total</span></td>
+                        </tr>
+                        <tr class="border-b border-border-subtle/50">
+                            <td class="py-2 pr-4 text-fg">Contributors</td>
+                            <td class="py-2 pr-4"><span class="text-accent-teal">log</span></td>
+                            <td class="py-2 pr-4">40</td>
+                            <td class="py-2">GitHub API <span class="text-fg-faint">— cumulative, all-time</span></td>
+                        </tr>
+                        <tr class="border-b border-border-subtle/50">
+                            <td class="py-2 pr-4 text-fg">Watchers</td>
+                            <td class="py-2 pr-4"><span class="text-accent-teal">log</span></td>
+                            <td class="py-2 pr-4">20</td>
+                            <td class="py-2">GitHub API <span class="text-fg-faint">— cumulative, current total</span></td>
+                        </tr>
+                        <tr class="border-b border-border-subtle/50">
+                            <td class="py-2 pr-4 text-fg">Package sources</td>
+                            <td class="py-2 pr-4"><span class="text-accent-teal">log</span></td>
+                            <td class="py-2 pr-4">50</td>
+                            <td class="py-2">Distro &amp; registry collectors <span class="text-fg-faint">— count of sources with a published version right now</span></td>
+                        </tr>
+                        <tr class="border-b border-border-subtle/50">
+                            <td class="py-2 pr-4 text-fg">Total downloads</td>
+                            <td class="py-2 pr-4"><span class="text-accent-teal">log</span></td>
+                            <td class="py-2 pr-4">20</td>
+                            <td class="py-2">PyPI, npm, Crates.io, RubyGems, Packagist, NuGet, Homebrew, Chocolatey <span class="text-fg-faint">— monthly estimate (daily &times; 30 or last-month total)</span></td>
+                        </tr>
+                        <tr class="border-b border-border-subtle/50">
+                            <td class="py-2 pr-4 text-fg">Total dependents</td>
+                            <td class="py-2 pr-4"><span class="text-accent-teal">log</span></td>
+                            <td class="py-2 pr-4">40</td>
+                            <td class="py-2">GitHub dependency graph <span class="text-fg-faint">— current total (fallback: npm, Crates.io, RubyGems, AUR)</span></td>
+                        </tr>
+                        <tr class="border-b border-border-subtle/50">
+                            <td class="py-2 pr-4 text-fg">Traffic views</td>
+                            <td class="py-2 pr-4"><span class="text-accent-teal">log</span></td>
+                            <td class="py-2 pr-4">15</td>
+                            <td class="py-2">GitHub Traffic API <span class="text-fg-faint">— sum of last 30 days</span></td>
+                        </tr>
+                        <tr>
+                            <td class="py-2 pr-4 text-fg">Traffic clones</td>
+                            <td class="py-2 pr-4"><span class="text-accent-teal">log</span></td>
+                            <td class="py-2 pr-4">15</td>
+                            <td class="py-2">GitHub Traffic API <span class="text-fg-faint">— sum of last 30 days</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+                <p class="text-fg-faint text-xs mt-3">Stars and forks use square root scaling (diminishing returns at high counts). All others use log scaling. Zero inputs contribute nothing. Traffic and downloads use rolling windows, so the score can decrease when high-activity days roll off.</p>
+            </div>
+        </div>
+    </section>
+
+    {# ── Other Computed Metrics ── #}
+    <section class="mb-12">
+        <h2 class="text-lg font-medium text-fg-bright mb-1 flex items-center gap-2">
+            <span class="nf text-fg-dim">&#xf295;</span> Other Computed Metrics
+        </h2>
+        <p class="text-fg-dim text-sm mb-4">Derived from collected data, not fetched from external sources.</p>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div>
+                <h3 class="text-sm font-medium text-fg-bright mb-2">Traction</h3>
+                <ul class="text-sm text-fg-dim space-y-1">
+                    <li>Stars per week &amp; per month</li>
+                    <li>Issue close rate (7-day window)</li>
+                    <li>PR merge rate (7-day window)</li>
+                </ul>
+            </div>
+            <div>
+                <h3 class="text-sm font-medium text-fg-bright mb-2">Packaging</h3>
+                <ul class="text-sm text-fg-dim space-y-1">
+                    <li>Version freshness per source</li>
+                    <li>Package breadth (% of ecosystems)</li>
+                    <li>Total downloads across registries</li>
+                    <li>Total dependents across sources</li>
+                </ul>
+            </div>
+            <div>
+                <h3 class="text-sm font-medium text-fg-bright mb-2">Deltas</h3>
+                <p class="text-sm text-fg-dim">Week-over-week change for stars, forks, issues, PRs, contributors, commits, watchers, and releases.</p>
+            </div>
+        </div>
+    </section>
+
+    {# ── Collection Details ── #}
+    <section class="mb-12">
+        <h2 class="text-lg font-medium text-fg-bright mb-1 flex items-center gap-2">
+            <span class="nf text-fg-dim">&#xf64f;</span> Collection
+        </h2>
+        <p class="text-fg-dim text-sm mb-4">How and when data is collected.</p>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-12 gap-y-2 text-sm text-fg-dim">
+            <div><span class="text-fg">Frequency</span> &mdash; once per day per project</div>
+            <div><span class="text-fg">Scheduling</span> &mdash; staggered across 24h by project ID hash</div>
+            <div><span class="text-fg">Storage</span> &mdash; append-only snapshots keyed by (entity, date)</div>
+            <div><span class="text-fg">Toggles</span> &mdash; GitHub, traffic, and packages per project</div>
+        </div>
+    </section>
+
+    {# ── Technical Reference ── #}
+    <section class="mb-12">
+        <h2 class="text-lg font-medium text-fg-bright mb-1 flex items-center gap-2">
+            <span class="nf text-fg-dim">&#xf120;</span> Technical Reference
+        </h2>
+        <p class="text-fg-dim text-sm mb-6">Every external endpoint we call, what we send, and what we extract.</p>
+
+        {% set ua = "OpenTrend/0.1.0" %}
+        {% set r = "border-b border-border-subtle/30" %}
+        {% macro row(source, endpoint, type, fields, ua_override=none, last=false) %}
+        <tr{% if not last %} class="{{ r }}"{% endif %}>
+            <td class="py-1.5 pr-3 font-sans text-fg">{{ source }}</td>
+            <td class="py-1.5 pr-3"><span class="text-fg-faint">GET</span> {{ endpoint }}</td>
+            <td class="py-1.5 pr-3">{{ type }}</td>
+            <td class="py-1.5 pr-3 font-sans text-fg-faint">{{ ua_override if ua_override else ua }}</td>
+            <td class="py-1.5 font-sans">{{ fields }}</td>
+        </tr>
+        {% endmacro %}
+        {% macro thead() %}
+                <thead>
+                    <tr class="text-left text-fg-faint border-b border-border-subtle">
+                        <th class="py-1.5 pr-3 font-medium">Source</th>
+                        <th class="py-1.5 pr-3 font-medium">Endpoint</th>
+                        <th class="py-1.5 pr-3 font-medium">Type</th>
+                        <th class="py-1.5 pr-3 font-medium">User-Agent</th>
+                        <th class="py-1.5 font-medium">Fields extracted</th>
+                    </tr>
+                </thead>
+        {% endmacro %}
+
+        <h3 class="text-sm font-medium text-fg-bright mb-3 mt-6">GitHub</h3>
+        <div class="overflow-x-auto mb-6">
+            <table class="w-full text-xs">
+                {{ thead() }}
+                <tbody class="text-fg-dim font-mono">
+                    {{ row("Repository", "api.github.com/repos/{owner}/{repo}", "JSON", "stargazers_count, forks_count, subscribers_count, open_issues_count, license.spdx_id") }}
+                    {{ row("Closed issues", "api.github.com/search/issues?q=type:issue state:closed", "JSON", "total_count") }}
+                    {{ row("Pull requests", "api.github.com/search/issues?q=type:pr state:open|closed", "JSON", "total_count (×2 calls)") }}
+                    {{ row("Contributors", "api.github.com/repos/{o}/{r}/contributors?per_page=100", "JSON", "array length (paginated)") }}
+                    {{ row("Commits", "api.github.com/repos/{o}/{r}/commits?per_page=1", "JSON", "Link header → last page number") }}
+                    {{ row("Releases", "api.github.com/repos/{o}/{r}/releases?per_page=100", "JSON", "tag_name, published_at, assets[].name, assets[].download_count") }}
+                    {{ row("Commit activity", "api.github.com/repos/{o}/{r}/stats/commit_activity", "JSON", "week, total (retries on 202)") }}
+                    {{ row("Code frequency", "api.github.com/repos/{o}/{r}/stats/code_frequency", "JSON", "[timestamp, additions, deletions]") }}
+                    {{ row("Participation", "api.github.com/repos/{o}/{r}/stats/contributors", "JSON", "author.login, weeks[].c → owner vs community") }}
+                    {{ row("Community", "api.github.com/repos/{o}/{r}/community/profile", "JSON", "health_percentage") }}
+                    {{ row("Dependents", "github.com/{o}/{r}/network/dependents", "Scrape", "regex: N Repositories, N Packages") }}
+                    {{ row("Clones", "api.github.com/repos/{o}/{r}/traffic/clones?per=day", "JSON", "clones[].count, clones[].uniques") }}
+                    {{ row("Views", "api.github.com/repos/{o}/{r}/traffic/views?per=day", "JSON", "views[].count, views[].uniques") }}
+                    {{ row("Referrers", "api.github.com/repos/{o}/{r}/traffic/popular/referrers", "JSON", "referrer, count, uniques", last=true) }}
+                </tbody>
+            </table>
+        </div>
+
+        <h3 class="text-sm font-medium text-fg-bright mb-3">Package Registries</h3>
+        <div class="overflow-x-auto mb-6">
+            <table class="w-full text-xs">
+                {{ thead() }}
+                <tbody class="text-fg-dim font-mono">
+                    {{ row("PyPI", "pypi.org/pypi/{name}/json", "JSON", "info.version, len(releases)") }}
+                    {{ row("PyPI stats", "pypistats.org/api/packages/{name}/recent", "JSON", "data.last_day, last_week, last_month") }}
+                    {{ row("npm", "registry.npmjs.org/{name}", "JSON", "dist-tags.latest, versions count") }}
+                    {{ row("npm stats", "api.npmjs.org/downloads/point/last-{day,week,month}/{name}", "JSON", "downloads") }}
+                    {{ row("npm dependents", "registry.npmjs.org/-/v1/search?text={name}", "JSON", "objects[].dependents") }}
+                    {{ row("Crates.io", "crates.io/api/v1/crates/{name}", "JSON", "crate.max_version, downloads, recent_downloads") }}
+                    {{ row("Crates.io dependents", "crates.io/api/v1/crates/{name}/reverse_dependencies", "JSON", "meta.total") }}
+                    {{ row("RubyGems", "rubygems.org/api/v1/gems/{name}.json", "JSON", "version, downloads, version_downloads") }}
+                    {{ row("RubyGems versions", "rubygems.org/api/v1/versions/{name}.json", "JSON", "array length (version count)") }}
+                    {{ row("RubyGems dependents", "rubygems.org/api/v1/gems/{name}/reverse_dependencies.json", "JSON", "array length") }}
+                    {{ row("Go latest", "proxy.golang.org/{module}/@latest", "JSON", "Version") }}
+                    {{ row("Go versions", "proxy.golang.org/{module}/@v/list", "Text", "line count (version count)") }}
+                    {{ row("Maven Central", "search.maven.org/solrsearch/select?q=g:{g}+AND+a:{a}", "JSON", "latestVersion, versionCount") }}
+                    {{ row("NuGet", "api.nuget.org/v3/query?q={name}", "JSON", "version, totalDownloads, versions count") }}
+                    {{ row("Packagist", "packagist.org/packages/{vendor}/{package}.json", "JSON", "downloads.daily/monthly/total, dependents, versions", last=true) }}
+                </tbody>
+            </table>
+        </div>
+
+        <h3 class="text-sm font-medium text-fg-bright mb-3">OS Packages &amp; Distros</h3>
+        <div class="overflow-x-auto">
+            <table class="w-full text-xs">
+                {{ thead() }}
+                <tbody class="text-fg-dim font-mono">
+                    {{ row("AUR", "aur.archlinux.org/rpc/v5/info/{name}", "JSON", "Version, NumVotes, Popularity") }}
+                    {{ row("AUR dependents", "aur.archlinux.org/packages/{name}", "Scrape", "regex: Required by (N)") }}
+                    {{ row("Arch", "archlinux.org/packages/search/json/?name={name}", "JSON", "pkgver, pkgrel") }}
+                    {{ row("Homebrew", "formulae.brew.sh/api/formula/{name}.json", "JSON", "versions.stable, analytics.install_on_request.30d") }}
+                    {{ row("Homebrew Tap", "api.github.com/repos/{user}/homebrew-{tap}/contents/Formula/{formula}.rb", "Raw", "version or url regex") }}
+                    {{ row("Chocolatey", "community.chocolatey.org/api/v2/Packages()", "OData", "Version, DownloadCount (XML)") }}
+                    {{ row("Debian", "sources.debian.org/api/src/{name}/", "JSON", "version") }}
+                    {{ row("Ubuntu", "api.launchpad.net/1.0/ubuntu/+archive/primary", "JSON", "source_package_version") }}
+                    {{ row("Fedora", "bodhi.fedoraproject.org/updates/?packages={name}", "JSON", "builds[0].nvr") }}
+                    {{ row("MacPorts", "ports.macports.org/api/v1/ports/{name}/", "JSON", "version") }}
+                    {{ row("Scoop", "api.github.com/repos/ScoopInstaller/{bucket}/contents/bucket/{name}.json", "Raw", "version") }}
+                    {{ row("openSUSE", "download.opensuse.org/tumbleweed/repo/oss/x86_64/", "Scrape", "version from RPM filename") }}
+                    {{ row("Manjaro", "ftp.halifax.rwth-aachen.de/manjaro/stable/extra/x86_64/", "Scrape", "version from package filename") }}
+                    {{ row("Alpine", "api.github.com/repos/alpinelinux/aports/contents/{repo}/{name}/APKBUILD", "Raw", "pkgver regex") }}
+                    {{ row("NixOS", "api.github.com/repos/NixOS/nixpkgs/contents/pkgs/by-name/{prefix}/{name}/package.nix", "Raw", "version regex") }}
+                    {{ row("Void", "api.github.com/repos/void-linux/void-packages/contents/srcpkgs/{name}/template", "Raw", "version regex") }}
+                    {{ row("Termux", "api.github.com/repos/termux/termux-packages/contents/packages/{name}/build.sh", "Raw", "TERMUX_PKG_VERSION regex") }}
+                    {{ row("Chimera", "api.github.com/repos/chimera-linux/cports/contents/{subdir}/{name}/template.py", "Raw", "pkgver regex") }}
+                    {{ row("Gentoo", "api.github.com/repos/gentoo/gentoo/contents/{category}/{name}/Manifest", "Raw", "version from DIST lines") }}
+                    {{ row("SlackBuilds", "api.github.com/repos/SlackBuildsOrg/slackbuilds/contents/{category}/{name}/{name}.info", "Raw", "VERSION regex") }}
+                    {{ row("WakeMeOps", "api.github.com/repos/upciti/wakemeops/contents/blueprints/{category}/{name}/ops2deb.yml", "Raw", "versions from YAML") }}
+                    {{ row("OpenBSD", "api.github.com/repos/openbsd/ports/contents/{category}/{name}/Makefile", "Raw", "MODGO_VERSION / GH_TAGNAME regex") }}
+                    {{ row("FreeBSD", "api.github.com/repos/freebsd/freebsd-ports/contents/{category}/{name}/Makefile", "Raw", "PORTVERSION / DISTVERSION regex") }}
+                    {{ row("Parabola", "parabola.nu/packages/{repo}/x86_64/{name}/", "Scrape", "version regex", last=true) }}
+                </tbody>
+            </table>
+        </div>
+    </section>
+</div>
+
+{% endblock %}

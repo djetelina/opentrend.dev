@@ -1,0 +1,31 @@
+<div class="table-wrap">
+    <table>
+        <thead>
+            <tr>
+                <th>Release</th>
+                <th>Date</th>
+                <th>Total Downloads</th>
+                <th>Assets</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for rel in release_summary %}
+            <tr>
+                <td><span class="badge-teal badge">{{ rel.release_tag }}</span></td>
+                <td><span class="mono">{{ rel.date }}</span></td>
+                <td><span class="mono">{{ "{:,}".format(rel.total_downloads) }}</span></td>
+                <td>
+                    <details class="release-assets">
+                        <summary>{{ rel.assets|length }} asset{{ "s" if rel.assets|length != 1 }}</summary>
+                        <ul class="asset-list">
+                            {% for asset in rel.assets %}
+                            <li><span class="mono">{{ asset.asset_name }}</span> <span class="mono" style="color:var(--fg-dim)">{{ "{:,}".format(asset.download_count) }}</span></li>
+                            {% endfor %}
+                        </ul>
+                    </details>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>

@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}My Projects — opentrend.dev{% endblock %}
+{% block content %}
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.5rem">
+    <h1 class="animate-in">projects</h1>
+    <a href="/projects/add" class="btn btn-primary animate-in delay-1">+ add</a>
+</div>
+
+{% if projects %}
+<div class="project-list">
+    {% for project in projects %}
+    <div class="project-item animate-in delay-{{ loop.index + 1 }}">
+        <div class="project-item-info">
+            <a href="/p/{{ project.github_repo }}" class="project-item-name">{{ project.display_name }}</a>
+            <span class="project-item-repo">{{ project.github_repo }}</span>
+            {% if project.description %}<span class="project-item-desc">{{ project.description }}</span>{% endif %}
+        </div>
+        <div class="project-item-actions">
+            <a href="/projects/{{ project.id }}/edit" class="btn btn-sm">edit</a>
+            <form method="post" action="/projects/{{ project.id }}/collect" style="display:inline">
+                <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="btn btn-sm" style="background:var(--bg-raised);color:var(--fg);border:1px solid var(--border)">collect</button>
+            </form>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="empty-state animate-in delay-2">
+    <p>No projects yet. Add one to start tracking.</p>
+</div>
+{% endif %}
+{% endblock %}
