@@ -11,6 +11,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Show GitHub as an implicit (always-on) package in the discovery results when adding a project
 
+### Changed
+
+- Add-project page: renamed "discover packages" button to "continue"
+- Add-project info panel: added Go, Maven, NuGet, Packagist to registries list
+- Add-project info panel: updated distro source count from 25+ to 30+
+
 ## [0.1.5] - 2026-04-07
 
 ### Fixed
