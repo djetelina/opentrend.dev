@@ -277,68 +277,81 @@ async def _check_gentoo(
 # ── Main ──
 
 
-async def discover(
-    project_name: str, github_token: str | None = None
-) -> DiscoveryResult:
-    """Discover packages across registries and distros."""
+async def _run_with_client(coro_fn, github_token: str | None = None):
+    """Run a discovery coroutine with its own HTTP client session."""
     async with instrumented_client(
         timeout=10.0, headers={"User-Agent": USER_AGENT}
     ) as client:
         github_raw = make_github_raw(client, github_token)
+        return await coro_fn(client, github_raw)
 
-        tasks = [
-            # Registries
-            _check_pypi(client, project_name),
-            _check_npm(client, project_name),
-            _check_crates(client, project_name),
-            _check_rubygems(client, project_name),
-            _check_packagist(client, project_name),
-            _check_nuget(client, project_name),
-            # Arch
-            _discover_distro(client, "arch", project_name, github_raw),
-            _check_aur(client, project_name),
-            # macOS
-            _check_homebrew(client, project_name),
-            _discover_distro(client, "macports", project_name, github_raw),
-            # Windows
-            _check_chocolatey(client, project_name),
-            _discover_distro(client, "scoop", project_name, github_raw),
-            # Debian/Ubuntu
-            _discover_distro(client, "debian", project_name, github_raw),
-            _discover_distro(client, "ubuntu", project_name, github_raw),
-            # RPM
-            _discover_distro(client, "fedora", project_name, github_raw),
-            # Other distros (all use shared fetchers)
-            _discover_distro(client, "nix", project_name, github_raw),
-            _discover_distro(client, "alpine", project_name, github_raw),
-            _discover_distro(client, "void", project_name, github_raw),
-            _discover_distro(client, "termux", project_name, github_raw),
-            _discover_distro(client, "chimera", project_name, github_raw),
-            _discover_distro(client, "openbsd", project_name, github_raw),
-            _discover_distro(client, "freebsd", project_name, github_raw),
-            _check_gentoo(client, project_name, github_raw),
-            _discover_distro(client, "slackbuilds", project_name, github_raw),
-            _discover_distro(client, "opensuse", project_name, github_raw),
-            _discover_distro(client, "manjaro", project_name, github_raw),
-            _discover_distro(client, "parabola", project_name, github_raw),
-            _discover_distro(client, "wakemeops", project_name, github_raw),
-        ]
 
-        results = await asyncio.gather(*tasks, return_exceptions=True)
+async def discover(
+    project_name: str, github_token: str | None = None
+) -> DiscoveryResult:
+    """Discover packages across registries and distros.
 
-        packages = []
-        for result in results:
-            if isinstance(result, BaseException):
-                logger.warning("Discovery task failed: %s", result)
-                continue
-            if result is None:
-                continue
-            if isinstance(result, list):
-                packages.extend(result)
-            else:
-                packages.append(result)
+    Each task gets its own HTTP session to avoid niquests assertion errors
+    when sharing a single AsyncSession across concurrent coroutines.
+    """
+    task_fns = [
+        # Registries
+        lambda c, _: _check_pypi(c, project_name),
+        lambda c, _: _check_npm(c, project_name),
+        lambda c, _: _check_crates(c, project_name),
+        lambda c, _: _check_rubygems(c, project_name),
+        lambda c, _: _check_packagist(c, project_name),
+        lambda c, _: _check_nuget(c, project_name),
+        # Arch
+        lambda c, g: _discover_distro(c, "arch", project_name, g),
+        lambda c, _: _check_aur(c, project_name),
+        # macOS
+        lambda c, _: _check_homebrew(c, project_name),
+        lambda c, g: _discover_distro(c, "macports", project_name, g),
+        # Windows
+        lambda c, _: _check_chocolatey(c, project_name),
+        lambda c, g: _discover_distro(c, "scoop", project_name, g),
+        # Debian/Ubuntu
+        lambda c, g: _discover_distro(c, "debian", project_name, g),
+        lambda c, g: _discover_distro(c, "ubuntu", project_name, g),
+        # RPM
+        lambda c, g: _discover_distro(c, "fedora", project_name, g),
+        # Other distros (all use shared fetchers)
+        lambda c, g: _discover_distro(c, "nix", project_name, g),
+        lambda c, g: _discover_distro(c, "alpine", project_name, g),
+        lambda c, g: _discover_distro(c, "void", project_name, g),
+        lambda c, g: _discover_distro(c, "termux", project_name, g),
+        lambda c, g: _discover_distro(c, "chimera", project_name, g),
+        lambda c, g: _discover_distro(c, "openbsd", project_name, g),
+        lambda c, g: _discover_distro(c, "freebsd", project_name, g),
+        lambda c, g: _check_gentoo(c, project_name, g),
+        lambda c, g: _discover_distro(c, "slackbuilds", project_name, g),
+        lambda c, g: _discover_distro(c, "opensuse", project_name, g),
+        lambda c, g: _discover_distro(c, "manjaro", project_name, g),
+        lambda c, g: _discover_distro(c, "parabola", project_name, g),
+        lambda c, g: _discover_distro(c, "wakemeops", project_name, g),
+    ]
 
-        return _filter_outliers(packages)
+    results = await asyncio.gather(
+        *[_run_with_client(fn, github_token) for fn in task_fns],
+        return_exceptions=True,
+    )
+
+    packages = []
+    for result in results:
+        if isinstance(result, BaseException):
+            logger.warning(
+                "Discovery task failed: %s: %r", type(result).__name__, result
+            )
+            continue
+        if result is None:
+            continue
+        if isinstance(result, list):
+            packages.extend(result)
+        else:
+            packages.append(result)
+
+    return _filter_outliers(packages)
 
 
 def _parse_major(version: str) -> int | None:

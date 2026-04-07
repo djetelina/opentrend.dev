@@ -4,7 +4,7 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 
 from litestar import Litestar, Request, Response
-from litestar.response import Redirect
+from litestar.response import Redirect, Template
 from litestar.config.csrf import CSRFConfig
 from litestar.contrib.jinja import JinjaTemplateEngine
 from litestar.exceptions import HTTPException, NotAuthorizedException, NotFoundException
@@ -133,9 +133,8 @@ def create_app(
             response.headers.setdefault(
                 "Strict-Transport-Security", "max-age=31536000; includeSubDomains"
             )
-        # Prevent browser from serving stale HTML after auth state changes
-        content_type = response.headers.get("content-type", "")
-        if "text/html" in content_type:
+        # Prevent browser/CDN from serving stale HTML after auth state changes
+        if isinstance(response, (Template, Redirect)):
             response.headers["Cache-Control"] = "no-store"
         return response
 
