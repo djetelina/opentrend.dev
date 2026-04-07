@@ -267,7 +267,66 @@ class HomeController(Controller):
 
                 project_data.sort(key=lambda x: x["reach"], reverse=True)
 
+        # Leaderboard preview for logged-out landing page
+        leaderboard_entries = []
+        if not user:
+            latest = (
+                select(
+                    GithubSnapshot.project_id,
+                    GithubSnapshot.reach_score,
+                    func.row_number()
+                    .over(
+                        partition_by=GithubSnapshot.project_id,
+                        order_by=desc(GithubSnapshot.date),
+                    )
+                    .label("rn"),
+                )
+                .where(GithubSnapshot.reach_score.is_not(None))
+                .subquery()
+            )
+            stmt = (
+                select(
+                    Project.display_name,
+                    Project.github_repo,
+                    latest.c.reach_score,
+                    Project.id.label("project_id"),
+                )
+                .join(latest, Project.id == latest.c.project_id)
+                .where(latest.c.rn == 1)
+                .where(latest.c.reach_score > 0)
+                .order_by(desc(latest.c.reach_score))
+                .limit(5)
+            )
+            rows = (await db_session.execute(stmt)).all()
+            project_ids = [r.project_id for r in rows]
+
+            reach_history: dict[uuid.UUID, list[int]] = {pid: [] for pid in project_ids}
+            if project_ids:
+                hist_stmt = (
+                    select(GithubSnapshot.project_id, GithubSnapshot.reach_score)
+                    .where(GithubSnapshot.project_id.in_(project_ids))
+                    .where(GithubSnapshot.reach_score.is_not(None))
+                    .order_by(GithubSnapshot.project_id, GithubSnapshot.date)
+                )
+                for h in await db_session.execute(hist_stmt):
+                    reach_history[h.project_id].append(h.reach_score)
+
+            leaderboard_entries = [
+                {
+                    "rank": i + 1,
+                    "display_name": r.display_name,
+                    "github_repo": r.github_repo,
+                    "reach": r.reach_score,
+                    "reach_history": json.dumps(reach_history.get(r.project_id, [])),
+                }
+                for i, r in enumerate(rows)
+            ]
+
         return Template(
             template_name="home.html",
-            context={"project_data": project_data, "user": user},
+            context={
+                "project_data": project_data,
+                "user": user,
+                "leaderboard_entries": leaderboard_entries,
+            },
         )

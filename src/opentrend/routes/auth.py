@@ -107,9 +107,7 @@ class AuthController(Controller):
         if user:
             return Redirect("/")
 
-        result = await db_session.execute(
-            select(User).where(User.github_username == "__dev__")
-        )
+        result = await db_session.execute(select(User).where(User.github_id == 0))
         user = result.scalar_one_or_none()
         if user is None:
             user = User(

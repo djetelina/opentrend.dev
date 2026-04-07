@@ -3,8 +3,8 @@
 {% block content %}
 
 {# ════════ HERO HEADER ════════ #}
-<div class="px-8 lg:px-10 xl:px-12 pt-6 pb-5 border-b border-border-subtle">
-    <div class="flex items-start justify-between gap-6">
+<div class="px-4 sm:px-8 lg:px-10 xl:px-12 pt-6 pb-5 border-b border-border-subtle overflow-hidden">
+    <div class="flex flex-col sm:flex-row items-start justify-between gap-4 sm:gap-6">
         <div>
             <div class="flex items-center gap-3 mb-1">
                 <h1 class="text-2xl lg:text-3xl font-semibold text-fg-bright tracking-tight">{{ project.display_name }}</h1>
@@ -19,12 +19,12 @@
             <p class="text-sm text-fg-dim mt-1 max-w-2xl leading-relaxed">{{ project.description }}</p>
             {% endif %}
         </div>
-        <div class="flex flex-col items-end gap-1 shrink-0 mt-1">
-            <div class="flex items-center gap-3">
+        <div class="flex flex-col sm:items-end gap-1 shrink-0 mt-1">
+            <div class="flex items-center gap-2 sm:gap-3 flex-wrap">
                 {% if latest_gh and latest_gh.reach_score %}
                 <div class="flex items-center gap-1.5">
                     <img src="/badge/{{ project.github_repo }}/reach.svg" alt="opentrend.dev reach badge">
-                    <button class="inline-flex items-center gap-1.5 text-sm text-fg-dim border border-border-subtle hover:border-border rounded px-3 py-1.5 bg-transparent hover:text-fg transition-colors cursor-pointer font-mono" title="Copy badge markdown" onclick="navigator.clipboard.writeText('[![opentrend.dev reach](https://opentrend.dev/badge/{{ project.github_repo }}/reach.svg)](https://opentrend.dev/p/{{ project.github_repo }})'); this.querySelector('.nf').innerHTML='&#x2713;'; setTimeout(() => this.querySelector('.nf').innerHTML='&#xf0c5;', 1500)"><span class="nf">&#xf0c5;</span></button>
+                    <button class="inline-flex items-center gap-1.5 text-sm text-fg-dim border border-border-subtle hover:border-border rounded px-3 py-1.5 bg-transparent hover:text-fg transition-colors cursor-pointer font-mono" title="Copy badge markdown" onclick="navigator.clipboard.writeText('[![opentrend.dev reach](https://opentrend.dev/badge/{{ project.github_repo }}/reach.svg)](https://opentrend.dev)'); this.querySelector('.nf').innerHTML='&#x2713;'; setTimeout(() => this.querySelector('.nf').innerHTML='&#xf0c5;', 1500)"><span class="nf">&#xf0c5;</span></button>
                 </div>
                 {% endif %}
                 {% if user %}
@@ -43,7 +43,7 @@
 
     {# ── KPI strip ── #}
     {% if latest_gh %}
-    <div class="flex flex-wrap gap-x-8 gap-y-2 mt-4">
+    <div class="grid grid-cols-2 sm:grid-cols-3 md:flex md:flex-wrap gap-x-8 gap-y-2 mt-4">
         {% if latest_gh.reach_score %}
         <div>
             <div class="text-2xl lg:text-3xl font-semibold text-accent-teal leading-none">{{ "{:,}".format(latest_gh.reach_score) }}</div>
@@ -85,7 +85,11 @@
 </div>
 
 {# ════════ MAIN GRID ════════ #}
-<div class="grid items-start px-8 lg:px-10 xl:px-12 py-6 gap-6" style="grid-template-columns:1fr 300px">
+<style>
+#dashboard-grid { grid-template-columns: 1fr; }
+@media (min-width: 768px) { #dashboard-grid { grid-template-columns: 1fr 300px; } }
+</style>
+<div class="grid items-start px-4 sm:px-8 lg:px-10 xl:px-12 py-6 gap-6" id="dashboard-grid">
 
 {# ── Charts (left, main area) ── #}
 <div class="min-w-0">
@@ -304,7 +308,7 @@
 </div>{# /charts #}
 
 {# ── Right sidebar (packaging + traction + secondary stats) ── #}
-<div class="sticky top-14 flex flex-col gap-5">
+<div class="md:sticky md:top-14 flex flex-col gap-5 overflow-x-auto">
 
     {# Secondary GitHub stats #}
     {% if latest_gh %}

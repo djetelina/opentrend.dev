@@ -35,22 +35,22 @@
 {# Fallbacks: if the preferred source is absent, show the family member instead #}
 {% set family_fallback = {"arch": "aur", "homebrew": "homebrew_tap"} %}
 
-<div class="px-8 lg:px-12 xl:px-16 py-8">
+<div class="px-4 sm:px-8 lg:px-12 xl:px-16 py-8">
 
     <div class="mb-8">
         <h1 class="text-3xl font-semibold text-fg-bright tracking-tight mb-2">leaderboard</h1>
-        <p class="text-fg-dim text-sm">Projects ranked by <a href="/data" class="text-fg hover:text-fg-bright underline">reach score</a> — a composite of stars, downloads, package distribution, and community activity.</p>
+        <p class="text-fg-dim text-sm">Projects ranked by <a href="/data#reach-score" class="text-fg hover:text-fg-bright underline">reach score</a> — a composite of stars, downloads, package distribution, and community activity.</p>
     </div>
 
     {% if entries %}
-    <div class="table-wrap">
-        <table>
+    <div class="table-wrap overflow-x-auto">
+        <table class="min-w-0">
             <thead>
                 <tr>
                     <th class="w-12">#</th>
                     <th>Project</th>
-                    <th>Sources</th>
-                    <th class="w-28">Trend</th>
+                    <th class="hidden sm:table-cell">Sources</th>
+                    <th class="w-28 hidden md:table-cell">Trend</th>
                     <th class="text-right">Reach</th>
                 </tr>
             </thead>
@@ -64,8 +64,8 @@
                         <span class="text-fg-bright font-medium text-base">{{ e.display_name }}</span>
                         <a href="https://github.com/{{ e.github_repo }}" target="_blank" rel="noopener" class="text-fg-faint ml-2 text-sm hidden sm:inline hover:text-fg-dim">{{ e.github_repo }}</a>
                     </td>
-                    <td>
-                        <span class="inline-flex items-center gap-2 flex-wrap text-lg">
+                    <td class="hidden sm:table-cell">
+                        <span class="inline-flex items-center gap-1 sm:gap-2 flex-wrap text-base sm:text-lg">
                             {% for src in preferred_order %}
                             {# Resolve: use src if present, otherwise try fallback (aur for arch, tap for homebrew) #}
                             {% set resolved = src if src in e.sources else family_fallback.get(src, "") %}
@@ -81,7 +81,7 @@
                             {% endfor %}
                         </span>
                     </td>
-                    <td>
+                    <td class="hidden md:table-cell">
                         <svg class="lb-sparkline" data-values="{{ e.reach_history }}" viewBox="0 0 120 32" preserveAspectRatio="none" style="width:100%;height:36px;"></svg>
                     </td>
                     <td class="text-right">

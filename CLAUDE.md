@@ -52,10 +52,13 @@ In development, `src/` is mounted into the container — the app runs with `debu
 - All JS/font assets are vendored in `static/vendor/` — no external CDNs. Tailwind CSS is built with the standalone CLI (`tailwindcss` binary) and output to `static/css/tailwind.css`. The Dockerfile downloads the CLI and builds during image creation. After changing templates with new Tailwind classes, rebuild CSS locally: `./tailwindcss -i src/opentrend/static/css/tailwind-input.css -o src/opentrend/static/css/tailwind.css --minify`
 - CSP is set to `'self'` only (plus `avatars.githubusercontent.com` for img-src). Adding external resources requires updating CSP in `app.py`.
 - Litestar CSRF validates via `x-csrftoken` header (HTMX) or `_csrf_token` form field (regular forms). Both must be present for their respective use cases. CSRF cookie name is `csrftoken`.
+- HTTP client is **niquests** (not httpx). Use `allow_redirects=` not `follow_redirects=`. `AsyncSession` does NOT support concurrent requests — each concurrent coroutine needs its own session instance.
+- Litestar's `after_request` handler runs before `content-type` and `media_type` are populated on the response. To branch on response type, use `isinstance(response, Template)` / `isinstance(response, Redirect)`.
 
 ## CI/CD
 
 - **PRs and main pushes**: lint (ruff check + format) → test (pytest)
 - **Releases**: push a `v*` tag → lint → test → build container → push to GHCR
 - **Versioning**: manual — bump `version` in `pyproject.toml`, update `CHANGELOG.md` (keepachangelog format), then `git tag v{version}`
+- **All git operations (commit, push, tag) require explicit user direction** unless autonomy is granted for the session.
 - **Dependabot**: weekly updates for pip, docker, and github-actions

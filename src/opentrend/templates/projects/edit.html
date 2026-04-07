@@ -123,6 +123,20 @@
             </div>
         </div>
 
+        {# ── Visibility ── #}
+        <div class="mb-8">
+            <div class="flex items-center gap-3 text-xs font-medium text-fg-faint uppercase tracking-widest mb-4">
+                <span class="nf">&#xf06e;</span> visibility
+                <span class="flex-1 h-px bg-border-subtle"></span>
+            </div>
+            <label class="inline-flex items-center gap-2.5 cursor-pointer text-sm">
+                <input type="checkbox" name="public" value="1" {{ 'checked' if project.public else '' }}
+                       class="accent-green-500 w-3.5 h-3.5 shrink-0">
+                <span class="text-fg">Public dashboard</span>
+                <span class="text-fg-faint text-xs">— anyone can view this project's dashboard without signing in</span>
+            </label>
+        </div>
+
         {# ── Save ── #}
         <div class="flex items-center gap-3">
             <button type="submit" class="bg-accent-teal text-bg px-5 py-2.5 rounded text-sm font-medium hover:bg-[#7af0de] transition-colors font-mono border-none cursor-pointer">Save</button>

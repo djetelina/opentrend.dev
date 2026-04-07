@@ -334,6 +334,8 @@ class ProjectController(Controller):
                 PackageMapping(source=m["source"], package_name=m["package_name"])
             )
 
+        project.public = form.get("public") == "1"
+
         await db_session.commit()
         return Redirect(f"/p/{project.github_repo}")
 

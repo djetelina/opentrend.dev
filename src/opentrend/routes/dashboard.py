@@ -5,7 +5,7 @@ from packaging.version import InvalidVersion, Version
 
 from litestar import Controller, get
 from litestar.connection import Request
-from litestar.exceptions import NotFoundException
+from litestar.exceptions import NotAuthorizedException, NotFoundException
 from litestar.response import Redirect, Template
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -13,7 +13,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from opentrend.models.project import Project
 from opentrend.models.snapshot import GithubSnapshot
 from opentrend.models.user import User
-from opentrend.routes import require_login
 from opentrend.services.dashboard import DashboardService
 from opentrend.types import NamedSeries, ReleaseAsset, ReleaseSummary
 
@@ -325,13 +324,12 @@ def _build_traffic_context(traffic_snapshots: list, traffic_referrers: list) -> 
 
 class DashboardController(Controller):
     path = "/p"
-    guards = [require_login]
 
     @get("/{owner:str}/{repo:str}", name="dashboard:project")
     async def project_dashboard(
         self,
         request: Request,
-        user: User,
+        user: User | None,
         db_session: AsyncSession,
         owner: str,
         repo: str,
@@ -344,7 +342,10 @@ class DashboardController(Controller):
         if project is None:
             raise NotFoundException("Project not found")
 
-        if project.user_id != user.id:
+        is_owner = user is not None and project.user_id == user.id
+        if not is_owner and not project.public:
+            if user is None:
+                raise NotAuthorizedException()
             raise NotFoundException("Project not found")
 
         dashboard = DashboardService(db_session)

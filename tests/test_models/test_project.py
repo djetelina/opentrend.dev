@@ -16,6 +16,7 @@ def test_project_has_required_columns() -> None:
         "github_repo",
         "display_name",
         "description",
+        "public",
         "created_at",
     }
 

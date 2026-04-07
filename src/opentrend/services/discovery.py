@@ -66,10 +66,13 @@ async def _discover_distro(
     for candidate in candidates:
         try:
             result = await fetcher(client, candidate, github_raw=github_raw)
-        except niquests.exceptions.RequestException, KeyError, ValueError, TypeError:
-            logger.warning(
-                "Discovery failed for %s:%s", source, candidate, exc_info=True
-            )
+        except (
+            niquests.exceptions.RequestException,
+            KeyError,
+            ValueError,
+            TypeError,
+        ) as e:
+            logger.warning("Discovery failed for %s:%s: %s", source, candidate, e)
             continue
         if result:
             packages.append(

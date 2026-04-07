@@ -27,11 +27,11 @@ class GithubSnapshot(Base):
     stars: Mapped[int] = mapped_column(Integer)
     forks: Mapped[int] = mapped_column(Integer)
     open_issues: Mapped[int] = mapped_column(Integer)  # GitHub counts PRs as issues
-    closed_issues: Mapped[int] = mapped_column(Integer)
-    open_prs: Mapped[int] = mapped_column(Integer)
-    closed_prs: Mapped[int] = mapped_column(Integer)
-    contributors: Mapped[int] = mapped_column(Integer)
-    commits_total: Mapped[int] = mapped_column(Integer)
+    closed_issues: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
+    open_prs: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
+    closed_prs: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
+    contributors: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
+    commits_total: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
     latest_release_date: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
     )

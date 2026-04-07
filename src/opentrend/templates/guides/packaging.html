@@ -1,26 +1,43 @@
 {% extends "base.html" %}
 {% block title %}Package for {{ guide.name }} — opentrend.dev{% endblock %}
 {% block content %}
-<div class="grid items-start px-8 lg:px-10 xl:px-12 py-6 gap-8" style="grid-template-columns:220px 1fr">
+<style>
+#guides-grid { grid-template-columns: 1fr; }
+@media (min-width: 768px) { #guides-grid { grid-template-columns: 220px 1fr; } }
+</style>
+<div class="grid items-start px-4 sm:px-8 lg:px-10 xl:px-12 py-6 gap-8" id="guides-grid">
 
-    {# ── Sidebar: all guides ── #}
-    <nav class="sticky top-14 flex flex-col gap-0.5">
+    {# ── Sidebar: all guides (desktop: sticky column, mobile: collapsible) ── #}
+    <nav class="hidden md:flex md:sticky md:top-14 flex-col items-start gap-0.5">
         <div class="text-xs font-medium text-fg-faint uppercase tracking-widest mb-2 pb-1.5 border-b border-border-subtle">
             packaging guides
         </div>
         {% for g in all_guides %}
         <a href="/guides/packaging/{{ g.slug }}{% if back_url %}?from={{ back_url }}{% endif %}"
-           class="flex items-center gap-2 px-2.5 py-1.5 rounded text-sm no-underline transition-colors text-left
-                  {{ 'bg-bg-raised border border-border-subtle text-fg-bright' if g.slug == ecosystem else 'text-fg-dim hover:text-fg hover:bg-bg-raised' }}">
+           class="flex items-center gap-2 px-2 py-1.5 rounded text-sm no-underline transition-colors whitespace-nowrap
+                  {{ 'bg-bg-raised border border-border-subtle text-fg-bright' if g.slug == ecosystem else 'text-fg-dim hover:text-fg hover:bg-bg-raised border border-transparent' }}">
             <span class="nf shrink-0" style="color:{{ g.color if g.color else 'var(--fg-dim)' }}">{{ g.icon | safe }}</span>
-            <span class="text-left">{{ g.name.split('(')[0].strip() }}</span>
+            {{ g.name.split('(')[0].strip() }}
         </a>
         {% endfor %}
-
     </nav>
+    <details class="md:hidden border border-border-subtle rounded bg-bg-raised px-3 py-2">
+        <summary class="text-sm text-fg-dim cursor-pointer">other packaging guides</summary>
+        <div class="flex flex-col gap-0.5 mt-2">
+            {% for g in all_guides %}
+            {% if g.slug != ecosystem %}
+            <a href="/guides/packaging/{{ g.slug }}{% if back_url %}?from={{ back_url }}{% endif %}"
+               class="flex items-center gap-2 px-2.5 py-1.5 rounded text-sm no-underline transition-colors text-fg-dim hover:text-fg hover:bg-bg">
+                <span class="nf shrink-0" style="color:{{ g.color if g.color else 'var(--fg-dim)' }}">{{ g.icon | safe }}</span>
+                <span>{{ g.name.split('(')[0].strip() }}</span>
+            </a>
+            {% endif %}
+            {% endfor %}
+        </div>
+    </details>
 
     {# ── Guide content ── #}
-    <div>
+    <div class="min-w-0 overflow-hidden">
         {% if back_url %}
         <a href="{{ back_url }}" class="text-fg-dim hover:text-fg no-underline text-sm">&larr; back to project</a>
         {% endif %}
@@ -35,13 +52,13 @@
         </div>
 
         {% if guide.requirements %}
-        <div class="flex gap-8 mb-8 items-start">
+        <div class="flex flex-col md:flex-row gap-6 md:gap-8 mb-8 items-start">
             <div class="guide-content guide-intro flex-1 min-w-0">
                 {# Render just the first paragraph (intro) #}
                 {% set parts = guide.html.split('</p>', 1) %}
                 {{ parts[0] | safe }}</p>
             </div>
-            <div class="shrink-0 w-72 border border-border-subtle rounded-[3px] bg-bg-raised px-4 py-3">
+            <div class="shrink-0 w-full md:w-72 border border-border-subtle rounded-[3px] bg-bg-raised px-4 py-3">
                 <div class="text-xs font-medium text-fg-faint uppercase tracking-widest mb-2">requirements</div>
                 <ul class="text-sm text-fg-dim leading-relaxed" style="list-style:none;padding:0;margin:0">
                     {% for req in guide.requirements %}

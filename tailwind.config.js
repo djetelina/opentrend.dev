@@ -4,7 +4,10 @@ module.exports = {
   content: ['./src/opentrend/templates/**/*.html'],
   theme: {
     extend: {
-      fontFamily: { mono: ['IBM Plex Mono', 'monospace'] },
+      fontFamily: {
+        sans: ['Space Grotesk', 'system-ui', 'sans-serif'],
+        mono: ['IBM Plex Mono', 'monospace'],
+      },
       colors: {
         bg: { DEFAULT: '#111116', raised: '#1c1c24' },
         border: { DEFAULT: '#363642', subtle: '#2a2a36' },

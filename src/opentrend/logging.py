@@ -20,11 +20,13 @@ def setup_logging(log_level: str = "INFO") -> None:
         structlog.processors.UnicodeDecoder(),
     ]
 
+    _key_order = ["timestamp", "log_level", "logger_name", "event"]
+
     structlog.configure(
         processors=[
             *shared_processors,
             structlog.stdlib.filter_by_level,
-            structlog.processors.JSONRenderer(),
+            structlog.processors.LogfmtRenderer(key_order=_key_order),
         ],
         wrapper_class=structlog.stdlib.BoundLogger,
         context_class=dict,
@@ -38,7 +40,7 @@ def setup_logging(log_level: str = "INFO") -> None:
         foreign_pre_chain=shared_processors,
         processors=[
             structlog.stdlib.ProcessorFormatter.remove_processors_meta,
-            structlog.processors.JSONRenderer(),
+            structlog.processors.LogfmtRenderer(key_order=_key_order),
         ],
     )
 

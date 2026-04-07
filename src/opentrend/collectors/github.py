@@ -324,7 +324,10 @@ class GithubCollector(ProjectCollector):
                 if v is not None:
                     setattr(snapshot, k, v)
         else:
-            all_fields = {**fields, **optional}
+            all_fields = {
+                **fields,
+                **{k: v for k, v in optional.items() if v is not None},
+            }
             session.add(
                 GithubSnapshot(
                     project_id=project_id,
