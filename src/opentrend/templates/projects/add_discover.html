@@ -22,6 +22,10 @@
         <h2>Discovered Packages</h2>
         <p class="form-help">Select which package sources to track:</p>
         <div class="discovered-list">
+            <label>
+                <input type="checkbox" checked disabled>
+                <span>github</span> &mdash; <span class="mono">{{ github_repo }}</span>
+            </label>
             {% for pkg in discovered %}
             <label>
                 <input type="checkbox" name="packages" value="{{ pkg.source }}:{{ pkg.package_name }}" checked>
