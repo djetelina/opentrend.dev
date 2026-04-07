@@ -20,7 +20,7 @@ def setup_logging(log_level: str = "INFO") -> None:
         structlog.processors.UnicodeDecoder(),
     ]
 
-    _key_order = ["timestamp", "log_level", "logger_name", "event"]
+    _key_order = ["level", "timestamp", "logger", "event"]
 
     structlog.configure(
         processors=[
