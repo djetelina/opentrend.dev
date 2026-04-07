@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.6] - 2026-04-07
+
 ### Added
 
 - Show GitHub as an implicit (always-on) package in the discovery results when adding a project
