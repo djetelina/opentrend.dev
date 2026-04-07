@@ -10,6 +10,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Show GitHub as an implicit (always-on) package in the discovery results when adding a project
+- Top nav links: "my projects" (logged-in) and "leaderboard" with active page highlighting
+- Vertical separator between logo and nav links for visual grouping
+- Logged-out nav shows dimmed "my projects" placeholder to prevent layout shift
 
 ### Changed
 
