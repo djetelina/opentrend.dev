@@ -14,8 +14,9 @@ COPY tailwind.config.js ./
 COPY src/ ./src/
 
 # Build Tailwind CSS
-ADD https://github.com/tailwindlabs/tailwindcss/releases/download/v3.4.17/tailwindcss-linux-x64 /usr/local/bin/tailwindcss
-RUN chmod +x /usr/local/bin/tailwindcss \
+ARG TARGETARCH
+RUN python -c "import urllib.request; urllib.request.urlretrieve('https://github.com/tailwindlabs/tailwindcss/releases/download/v3.4.17/tailwindcss-linux-' + ('x64' if '$TARGETARCH' == 'amd64' else '$TARGETARCH'), '/usr/local/bin/tailwindcss')" \
+    && chmod +x /usr/local/bin/tailwindcss \
     && tailwindcss -i src/opentrend/static/css/tailwind-input.css -o src/opentrend/static/css/tailwind.css --minify \
     && useradd --create-home --no-log-init appuser \
     && chown -R appuser:appuser /app/.venv
