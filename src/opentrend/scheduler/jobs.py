@@ -40,25 +40,18 @@ async def collect_project(
         if project is None:
             return
 
-        # Load the project owner's token
+        # Load the project owner's token (optional — needed for GitHub/traffic only)
         user_result = await session.execute(
             select(User).where(User.id == project.user_id)
         )
         user = user_result.scalar_one_or_none()
-        if user is None or not user.github_access_token:
-            logger.warning(
-                "No token for project %s owner, skipping collection", project_id
-            )
-            return
+        encrypted_token = user.github_access_token if user else None
 
-        encrypted_token = user.github_access_token
-
-    token = try_decrypt_token(encrypted_token, settings.encryption_key)
-    if token is None:
-        logger.warning(
-            "Failed to decrypt token for project %s, skipping collection", project_id
-        )
-        return
+    token = (
+        try_decrypt_token(encrypted_token, settings.encryption_key)
+        if encrypted_token
+        else None
+    )
 
     async with session_factory() as session:
         result = await session.execute(
@@ -67,6 +60,11 @@ async def collect_project(
         mappings = list(result.scalars().all())
 
     async def _collect_github():
+        if token is None:
+            logger.warning(
+                "No token for project %s, skipping GitHub collection", project_id
+            )
+            return
         start = time.monotonic()
         try:
             async with session_factory() as db:
@@ -82,6 +80,8 @@ async def collect_project(
             )
 
     async def _collect_traffic():
+        if token is None:
+            return
         start = time.monotonic()
         try:
             async with session_factory() as db:

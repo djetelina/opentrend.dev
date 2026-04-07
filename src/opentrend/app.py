@@ -16,6 +16,7 @@ from litestar.status_codes import HTTP_404_NOT_FOUND, HTTP_500_INTERNAL_SERVER_E
 from litestar.template import TemplateConfig
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from opentrend import __version__
 from opentrend.config import Settings
 from opentrend.db import create_engine, create_session_factory
 from opentrend.logging import setup_logging
@@ -185,4 +186,5 @@ def create_app(
         debug=settings.debug,
     )
     app.state["session_factory"] = session_factory
+    app.template_engine.engine.globals["asset_v"] = __version__
     return app

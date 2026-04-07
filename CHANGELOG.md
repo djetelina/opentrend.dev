@@ -13,12 +13,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Top nav links: "my projects" (logged-in) and "leaderboard" with active page highlighting
 - Vertical separator between logo and nav links for visual grouping
 - Logged-out nav shows dimmed "my projects" placeholder to prevent layout shift
+- Cache-busting version query string on CSS and favicon static assets
 
 ### Changed
 
 - Add-project page: renamed "discover packages" button to "continue"
 - Add-project info panel: added Go, Maven, NuGet, Packagist to registries list
 - Add-project info panel: updated distro source count from 25+ to 30+
+
+### Fixed
+
+- Package collectors (PyPI, npm, etc.) skipped entirely when GitHub token is missing — now only GitHub/traffic collectors require a token
+- Chart dots (showSymbol) missing on issues, pull requests, and release cadence charts
+- User-Agent version hardcoded as 0.1.0 — now derived from package metadata
 
 ## [0.1.5] - 2026-04-07
 

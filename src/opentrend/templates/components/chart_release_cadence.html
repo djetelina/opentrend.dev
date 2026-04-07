@@ -36,7 +36,7 @@ document.addEventListener('DOMContentLoaded', function() {
             type: 'line',
             data: data.map(function(d) { return d.value; }),
             step: 'end',
-            showSymbol: false,
+            showSymbol: data.length <= 30,
             lineStyle: { color: '#eab308', width: 1.5 },
             itemStyle: { color: '#eab308' }
         }]
