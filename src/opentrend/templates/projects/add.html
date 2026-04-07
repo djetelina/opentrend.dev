@@ -31,7 +31,7 @@
 
                 <div class="mt-6 text-center">
                     <button type="submit" id="discover-btn" class="inline-flex items-center gap-2 bg-accent-teal text-bg px-6 py-2.5 rounded text-base font-medium hover:bg-[#7af0de] transition-colors cursor-pointer font-mono">
-                        <span class="nf text-base">&#xf002;</span> discover packages
+                        continue
                     </button>
                 </div>
             </div>
@@ -52,7 +52,7 @@
                 <div class="mb-5">
                     <div class="text-sm text-fg-bright font-medium mb-2"><span class="nf text-fg-dim">&#xf121;</span> Registries</div>
                     <div class="flex flex-wrap gap-1.5">
-                        {% for tag in ["PyPI", "npm", "crates.io", "RubyGems"] %}
+                        {% for tag in ["PyPI", "npm", "crates.io", "RubyGems", "Go", "Maven", "NuGet", "Packagist"] %}
                         <span class="text-xs text-fg-dim border border-border-subtle rounded px-2 py-0.5">{{ tag }}</span>
                         {% endfor %}
                     </div>
@@ -65,9 +65,9 @@
                         {% for tag in ["Homebrew", "AUR", "Arch", "Debian", "Ubuntu", "Fedora", "Alpine", "Nix", "Void", "Chocolatey", "Scoop", "MacPorts"] %}
                         <span class="text-xs text-fg-dim border border-border-subtle rounded px-2 py-0.5">{{ tag }}</span>
                         {% endfor %}
-                        <span class="text-xs text-fg-faint border border-border-subtle/50 rounded px-2 py-0.5">+13 more</span>
+                        <span class="text-xs text-fg-faint border border-border-subtle/50 rounded px-2 py-0.5">+18 more</span>
                     </div>
-                    <div class="text-xs text-fg-faint mt-1.5">version tracking across 25+ sources</div>
+                    <div class="text-xs text-fg-faint mt-1.5">version tracking across 30+ sources</div>
                 </div>
 
                 <div>
