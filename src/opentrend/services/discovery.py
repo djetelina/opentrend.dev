@@ -242,7 +242,7 @@ async def _check_gentoo(
     """Gentoo discovery searches packages.gentoo.org first to find the category."""
     resp = await client.get(
         f"https://packages.gentoo.org/packages/search?q={name}",
-        follow_redirects=True,
+        allow_redirects=True,
     )
     if resp.status_code != 200:
         return None

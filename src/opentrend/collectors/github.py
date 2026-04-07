@@ -217,7 +217,7 @@ class GithubCollector(ProjectCollector):
             ) as web_client:
                 dep_resp = await web_client.get(
                     f"https://github.com/{repo}/network/dependents",
-                    follow_redirects=True,
+                    allow_redirects=True,
                 )
                 if dep_resp.status_code == 200:
                     repo_m = re.search(

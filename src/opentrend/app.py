@@ -133,6 +133,10 @@ def create_app(
             response.headers.setdefault(
                 "Strict-Transport-Security", "max-age=31536000; includeSubDomains"
             )
+        # Prevent browser from serving stale HTML after auth state changes
+        content_type = response.headers.get("content-type", "")
+        if "text/html" in content_type:
+            response.headers["Cache-Control"] = "no-store"
         return response
 
     app = Litestar(

@@ -26,7 +26,7 @@ class AuthController(Controller):
 
     @get("/login", name="auth:login")
     async def login(self, request: Request, settings: Settings) -> Redirect:
-        return_url = request.query_params.get("return_url", "/projects")
+        return_url = request.query_params.get("return_url", "/")
         request.session["return_url"] = safe_redirect_url(return_url)
         state = secrets.token_urlsafe(32)
         request.session["oauth_state"] = state
