@@ -69,17 +69,20 @@ class GithubCollector(ProjectCollector):
     async def _fetch_stats(
         self, client: niquests.AsyncSession, url: str
     ) -> dict | list | None:
-        """Fetch a GitHub stats endpoint (3 attempts total, retrying on 202/computing)."""
-        for _ in range(3):
+        """Fetch a GitHub stats endpoint with backoff retries on 202/computing."""
+        delays = [2, 5, 10, 15]
+        for delay in delays:
             resp = await client.get(url, headers=self._headers())
             if resp.status_code == 200:
                 return resp.json()
             if resp.status_code == 202:
-                await asyncio.sleep(2)
+                await asyncio.sleep(delay)
                 continue
             logger.warning("GitHub stats %s returned %d", url, resp.status_code)
             return None
-        logger.warning("GitHub stats %s still computing after 3 attempts", url)
+        logger.debug(
+            "GitHub stats %s still computing after %d attempts", url, len(delays)
+        )
         return None
 
     async def _fetch_all_pages(

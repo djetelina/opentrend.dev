@@ -9,7 +9,7 @@ from opentrend.collectors.base import PackageCollector
 
 logger = logging.getLogger(__name__)
 
-NUGET_SEARCH_API = "https://api.nuget.org/v3/query"
+NUGET_SEARCH_API = "https://azuresearch-usnc.nuget.org/query"
 
 
 class NuGetCollector(PackageCollector):

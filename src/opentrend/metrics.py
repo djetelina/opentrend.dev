@@ -4,9 +4,11 @@ import time
 from urllib.parse import urlparse
 
 import niquests
+from niquests.adapters import AsyncHTTPAdapter
 from prometheus_client import Counter, Histogram
 from sqlalchemy import event
 from sqlalchemy.ext.asyncio import AsyncEngine
+from urllib3.util.retry import Retry
 
 
 # --- Outgoing HTTP ---
@@ -44,8 +46,13 @@ async def _on_response(response, **_kwargs):
 
 
 def instrumented_client(**kwargs) -> niquests.AsyncSession:
-    """Create a niquests.AsyncSession with Prometheus instrumentation."""
+    """Create a niquests.AsyncSession with Prometheus instrumentation and connection retries."""
+    kwargs.setdefault("timeout", 30)
     session = niquests.AsyncSession(**kwargs)
+    retry = Retry(total=3, connect=3, backoff_factor=0.5, backoff_jitter=0.25)
+    adapter = AsyncHTTPAdapter(max_retries=retry)
+    session.mount("https://", adapter)
+    session.mount("http://", adapter)
     session.hooks["pre_request"].append(_on_pre_request)
     session.hooks["response"].append(_on_response)
     return session

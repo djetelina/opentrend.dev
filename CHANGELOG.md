@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.7] - 2026-04-09
+
+### Changed
+
+- Collector resilience: connection retries with backoff on all HTTP clients, GitHub stats backoff (2/5/10/15s), scheduled collections retry failed collectors after 5/10 min
+- Distro collector timeout increased to 120s for slow APIs (Launchpad)
+
+### Fixed
+
+- NuGet collector and discovery returning 404 — search API moved to azuresearch-usnc.nuget.org
+
 ## [0.1.6] - 2026-04-07
 
 ### Added

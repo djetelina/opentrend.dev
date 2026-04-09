@@ -28,7 +28,9 @@ class DistroCollector(PackageCollector):
             logger.warning("No fetcher for source %s", mapping.source)
             return
 
-        async with instrumented_client(headers={"User-Agent": USER_AGENT}) as client:
+        async with instrumented_client(
+            timeout=120, headers={"User-Agent": USER_AGENT}
+        ) as client:
             github_raw = make_github_raw(client, self._github_token)
             try:
                 info = await fetcher(

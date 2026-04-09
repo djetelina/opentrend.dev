@@ -393,7 +393,7 @@
                     {{ row("Go latest", "proxy.golang.org/{module}/@latest", "JSON", "Version") }}
                     {{ row("Go versions", "proxy.golang.org/{module}/@v/list", "Text", "line count (version count)") }}
                     {{ row("Maven Central", "search.maven.org/solrsearch/select?q=g:{g}+AND+a:{a}", "JSON", "latestVersion, versionCount") }}
-                    {{ row("NuGet", "api.nuget.org/v3/query?q={name}", "JSON", "version, totalDownloads, versions count") }}
+                    {{ row("NuGet", "azuresearch-usnc.nuget.org/query?q={name}", "JSON", "version, totalDownloads, versions count") }}
                     {{ row("Packagist", "packagist.org/packages/{vendor}/{package}.json", "JSON", "downloads.daily/monthly/total, dependents, versions", last=true) }}
                 </tbody>
             </table>

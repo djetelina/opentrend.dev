@@ -199,7 +199,7 @@ class ProjectController(Controller):
         session_factory = request.app.state.get("session_factory")
         if session_factory:
             task = asyncio.create_task(
-                collect_project(session_factory, settings, project.id)
+                collect_project(session_factory, settings, project.id, retry=False)
             )
             collecting = request.app.state.setdefault("collecting_tasks", {})
             collecting[project.id] = task
@@ -354,7 +354,7 @@ class ProjectController(Controller):
         session_factory = request.app.state.get("session_factory")
         if session_factory:
             task = asyncio.create_task(
-                collect_project(session_factory, settings, project_id)
+                collect_project(session_factory, settings, project_id, retry=False)
             )
             collecting = request.app.state.setdefault("collecting_tasks", {})
             collecting[project_id] = task

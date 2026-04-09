@@ -154,7 +154,7 @@ async def _check_nuget(
     client: niquests.AsyncSession, name: str
 ) -> DiscoveredPackage | None:
     resp = await client.get(
-        "https://api.nuget.org/v3/query",
+        "https://azuresearch-usnc.nuget.org/query",
         params={"q": name, "take": 5},
     )
     if resp.status_code != 200:

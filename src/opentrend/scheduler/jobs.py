@@ -31,6 +31,8 @@ async def collect_project(
     session_factory: async_sessionmaker[AsyncSession],
     settings: Settings,
     project_id: uuid.UUID,
+    *,
+    retry: bool = True,
 ) -> None:
     snapshot_date = datetime.now(timezone.utc).date()
 
@@ -59,65 +61,84 @@ async def collect_project(
         )
         mappings = list(result.scalars().all())
 
-    async def _collect_github():
+    async def _instrumented(name: str, coro) -> bool:
+        """Run a collector coroutine with metrics and error handling."""
+        start = time.monotonic()
+        try:
+            await coro
+            COLLECTION_TOTAL.labels(collector=name, status="success").inc()
+            return True
+        except Exception:
+            COLLECTION_TOTAL.labels(collector=name, status="error").inc()
+            logger.exception("Collection failed for %s (project %s)", name, project_id)
+            return False
+        finally:
+            COLLECTION_DURATION.labels(collector=name).observe(time.monotonic() - start)
+
+    async def _collect_github() -> bool:
         if token is None:
             logger.warning(
                 "No token for project %s, skipping GitHub collection", project_id
             )
-            return
-        start = time.monotonic()
-        try:
-            async with session_factory() as db:
-                collector = GithubCollector(token=token)
-                await collector.collect(db, project_id, snapshot_date)
-            COLLECTION_TOTAL.labels(collector="github", status="success").inc()
-        except Exception:
-            COLLECTION_TOTAL.labels(collector="github", status="error").inc()
-            logger.exception("GitHub collection failed for project %s", project_id)
-        finally:
-            COLLECTION_DURATION.labels(collector="github").observe(
-                time.monotonic() - start
-            )
+            return True
+        return await _instrumented("github", _run_github())
 
-    async def _collect_traffic():
+    async def _run_github():
+        async with session_factory() as db:
+            await GithubCollector(token=token).collect(db, project_id, snapshot_date)
+
+    async def _collect_traffic() -> bool:
         if token is None:
-            return
-        start = time.monotonic()
-        try:
-            async with session_factory() as db:
-                collector = TrafficCollector(token=token)
-                await collector.collect(db, project_id, snapshot_date)
-            COLLECTION_TOTAL.labels(collector="traffic", status="success").inc()
-        except Exception:
-            COLLECTION_TOTAL.labels(collector="traffic", status="error").inc()
-            logger.exception("Traffic collection failed for project %s", project_id)
-        finally:
-            COLLECTION_DURATION.labels(collector="traffic").observe(
-                time.monotonic() - start
-            )
+            return True
+        return await _instrumented("traffic", _run_traffic())
 
-    async def _collect_mapping(mapping):
-        start = time.monotonic()
-        try:
-            collector = get_package_collector(mapping.source, github_token=token)
-            if collector is None:
-                return
-            async with session_factory() as db:
-                await collector.collect(db, mapping.id, snapshot_date)
-            COLLECTION_TOTAL.labels(collector=mapping.source, status="success").inc()
-        except Exception:
-            COLLECTION_TOTAL.labels(collector=mapping.source, status="error").inc()
-            logger.exception("Package collection failed for mapping %d", mapping.id)
-        finally:
-            COLLECTION_DURATION.labels(collector=mapping.source).observe(
-                time.monotonic() - start
-            )
+    async def _run_traffic():
+        async with session_factory() as db:
+            await TrafficCollector(token=token).collect(db, project_id, snapshot_date)
 
-    await asyncio.gather(
-        _collect_github(),
-        _collect_traffic(),
-        *[_collect_mapping(m) for m in mappings],
-    )
+    async def _collect_mapping(mapping) -> bool:
+        collector = get_package_collector(mapping.source, github_token=token)
+        if collector is None:
+            return True
+        return await _instrumented(mapping.source, _run_mapping(collector, mapping))
+
+    async def _run_mapping(collector, mapping):
+        async with session_factory() as db:
+            await collector.collect(db, mapping.id, snapshot_date)
+
+    tasks = {
+        "github": _collect_github,
+        "traffic": _collect_traffic,
+        **{f"mapping_{m.id}": lambda m=m: _collect_mapping(m) for m in mappings},
+    }
+
+    results = await asyncio.gather(*[fn() for fn in tasks.values()])
+    failed = [name for name, ok in zip(tasks, results) if not ok]
+
+    if retry and failed:
+        retry_delays = [300, 600]  # 5 min, 10 min
+        for attempt, delay in enumerate(retry_delays, 1):
+            if not failed:
+                break
+            logger.info(
+                "Retrying %d failed collector(s) for project %s in %ds (attempt %d/%d): %s",
+                len(failed),
+                project_id,
+                delay,
+                attempt,
+                len(retry_delays),
+                ", ".join(failed),
+            )
+            await asyncio.sleep(delay)
+            retry_results = await asyncio.gather(*[tasks[name]() for name in failed])
+            failed = [name for name, ok in zip(failed, retry_results) if not ok]
+
+    if failed:
+        logger.warning(
+            "Collectors still failing for project %s: %s",
+            project_id,
+            ", ".join(failed),
+        )
 
     # Compute reach score after all collectors have run
     await recalc_reach(session_factory, project_id)
