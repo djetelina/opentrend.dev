@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.8] - 2026-04-10
+
+### Added
+
+- Prometheus business metrics: user count, project count, package mappings (total + per registry), snapshot counts per table, and user-project distribution gauges on `/metrics`
+- Business metrics refresh cached for 5 minutes via `cachetools.TTLCache`
+
 ## [0.1.7] - 2026-04-09
 
 ### Changed

@@ -1,6 +1,6 @@
 [project]
 name = "opentrend"
-version = "0.1.7"
+version = "0.1.8"
 description = "Open source project metrics dashboard"
 readme = {text = "", content-type = "text/plain"}
 authors = [
@@ -9,6 +9,7 @@ authors = [
 requires-python = ">=3.14"
 dependencies = [
     "alembic>=1.18.4",
+    "cachetools>=6.0",
     "apscheduler>=3.11.2",
     "asyncpg>=0.31.0",
     "cryptography>=46.0.6",
