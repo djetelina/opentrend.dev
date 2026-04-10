@@ -9,7 +9,10 @@ from litestar.config.csrf import CSRFConfig
 from litestar.contrib.jinja import JinjaTemplateEngine
 from litestar.exceptions import HTTPException, NotAuthorizedException, NotFoundException
 from litestar.middleware.session.client_side import CookieBackendConfig
-from litestar.plugins.prometheus import PrometheusConfig, PrometheusController
+from litestar.plugins.prometheus import (
+    PrometheusConfig,
+    PrometheusController as _BasePrometheusController,
+)
 from litestar.datastructures import CacheControlHeader
 from litestar.static_files import create_static_files_router
 from litestar.status_codes import HTTP_404_NOT_FOUND, HTTP_500_INTERNAL_SERVER_ERROR
@@ -20,12 +23,19 @@ from opentrend import __version__
 from opentrend.config import Settings
 from opentrend.db import create_engine, create_session_factory
 from opentrend.logging import setup_logging
+from opentrend.metrics import refresh_business_metrics
 from opentrend.routes import login_redirect, provide_owned_project, provide_user
 from opentrend.routes.auth import AuthController
 from opentrend.routes.dashboard import DashboardController
 from opentrend.routes.guides import GuidesController
 from opentrend.routes.home import HomeController
 from opentrend.routes.projects import ProjectController
+
+
+class _PrometheusController(_BasePrometheusController):
+    @staticmethod
+    async def before_request(db_session: AsyncSession) -> None:
+        await refresh_business_metrics(db_session)
 
 
 _SECURITY_HEADERS = {
@@ -146,7 +156,7 @@ def create_app(
             ProjectController,
             DashboardController,
             GuidesController,
-            PrometheusController,
+            _PrometheusController,
             static_router,
         ],
         dependencies={
