@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.9] - 2026-04-10
+
+### Fixed
+
+- `/metrics` endpoint crashing with `AttributeError: 'Request' has no attribute 'scalar'` — Litestar's `before_request` hook doesn't support dependency injection, so the controller now uses a proper `@get()` handler with DI
+
 ## [0.1.8] - 2026-04-10
 
 ### Added

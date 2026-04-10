@@ -3,15 +3,21 @@ from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 from pathlib import Path
 
-from litestar import Litestar, Request, Response
+import os
+
+from litestar import Controller, Litestar, Request, Response, get
 from litestar.response import Redirect, Template
 from litestar.config.csrf import CSRFConfig
 from litestar.contrib.jinja import JinjaTemplateEngine
 from litestar.exceptions import HTTPException, NotAuthorizedException, NotFoundException
 from litestar.middleware.session.client_side import CookieBackendConfig
-from litestar.plugins.prometheus import (
-    PrometheusConfig,
-    PrometheusController as _BasePrometheusController,
+from litestar.plugins.prometheus import PrometheusConfig
+from prometheus_client import (
+    CONTENT_TYPE_LATEST,
+    REGISTRY,
+    CollectorRegistry,
+    generate_latest,
+    multiprocess,
 )
 from litestar.datastructures import CacheControlHeader
 from litestar.static_files import create_static_files_router
@@ -32,10 +38,26 @@ from opentrend.routes.home import HomeController
 from opentrend.routes.projects import ProjectController
 
 
-class _PrometheusController(_BasePrometheusController):
-    @staticmethod
-    async def before_request(db_session: AsyncSession) -> None:
+_METRICS_HEADERS: dict[str, str] = {"Content-Type": CONTENT_TYPE_LATEST}
+
+
+class _PrometheusController(Controller):
+    path = "/metrics"
+
+    @get()
+    async def get(self, db_session: AsyncSession) -> Response:
         await refresh_business_metrics(db_session)
+
+        if (
+            "prometheus_multiproc_dir" in os.environ
+            or "PROMETHEUS_MULTIPROC_DIR" in os.environ
+        ):
+            registry = CollectorRegistry()
+            multiprocess.MultiProcessCollector(registry)
+        else:
+            registry = REGISTRY
+
+        return Response(generate_latest(registry), headers=_METRICS_HEADERS)
 
 
 _SECURITY_HEADERS = {

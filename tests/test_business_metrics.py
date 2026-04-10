@@ -1,8 +1,9 @@
 import uuid
-from unittest.mock import AsyncMock, MagicMock
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from litestar.testing import AsyncTestClient
+from sqlalchemy.ext.asyncio import AsyncSession as RealAsyncSession
 from opentrend.app import create_app
 from opentrend.config import Settings
 from opentrend.metrics import (
@@ -188,11 +189,30 @@ async def test_metrics_endpoint_includes_business_metrics(
     _business_metrics_cache["done"] = True
     USERS_TOTAL.set(42)
 
-    async with AsyncTestClient(
-        app=create_app(settings=settings, run_migrations=False)
-    ) as client:
-        resp = await client.get("/metrics")
+    with patch("opentrend.app.refresh_business_metrics", new_callable=AsyncMock):
+        async with AsyncTestClient(
+            app=create_app(settings=settings, run_migrations=False),
+        ) as client:
+            resp = await client.get("/metrics")
 
     assert resp.status_code == 200
     body = resp.text
     assert "opentrend_users_total 42.0" in body
+
+
+@pytest.mark.asyncio
+async def test_metrics_endpoint_calls_refresh_with_db_session(
+    settings: Settings,
+) -> None:
+    """Verify db_session (not Request) is injected into refresh_business_metrics."""
+    mock_refresh = AsyncMock()
+
+    with patch("opentrend.app.refresh_business_metrics", mock_refresh):
+        async with AsyncTestClient(
+            app=create_app(settings=settings, run_migrations=False),
+        ) as client:
+            resp = await client.get("/metrics")
+
+    assert resp.status_code == 200
+    mock_refresh.assert_awaited_once()
+    assert isinstance(mock_refresh.call_args[0][0], RealAsyncSession)
