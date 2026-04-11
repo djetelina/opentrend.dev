@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Homebrew custom tap links on project detail pointed to `user/tap` instead of `user/homebrew-tap`
+- Packaging matrix row links could cover the entire screen on mobile due to unreliable `position: relative` on `<tr>` elements
+
 ## [0.1.9] - 2026-04-10
 
 ### Fixed

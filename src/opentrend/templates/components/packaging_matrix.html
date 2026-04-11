@@ -124,7 +124,8 @@
 {% if row.source == "homebrew_tap" %}
     {% set tap_parts = row.package_name.split("/") %}
     {% if tap_parts | length >= 2 %}
-        {% set pkg_url = "https://github.com/" ~ tap_parts[0] ~ "/" ~ tap_parts[1] %}
+        {% set tap_repo = tap_parts[1] if tap_parts[1].startswith("homebrew-") else "homebrew-" ~ tap_parts[1] %}
+        {% set pkg_url = "https://github.com/" ~ tap_parts[0] ~ "/" ~ tap_repo %}
     {% else %}
         {% set pkg_url = "" %}
     {% endif %}

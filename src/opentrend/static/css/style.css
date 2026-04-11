@@ -469,8 +469,9 @@ tr:hover td { background: rgba(255, 255, 255, 0.015); }
 }
 .pkg-link:hover { color: var(--fg-bright); text-decoration: none; }
 
-.pkg-row-link { position: relative; cursor: pointer; }
+.pkg-row-link { cursor: pointer; }
 .pkg-row-link:hover { background: rgba(255,255,255,0.02); }
+.pkg-row-link td { position: relative; }
 .pkg-link-row::after {
     content: '';
     position: absolute;
