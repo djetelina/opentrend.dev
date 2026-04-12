@@ -7,10 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.10] - 2026-04-12
+
 ### Fixed
 
+- Sparkline SVG not spanning full card width
 - Homebrew custom tap links on project detail pointed to `user/tap` instead of `user/homebrew-tap`
 - Packaging matrix row links could cover the entire screen on mobile due to unreliable `position: relative` on `<tr>` elements
+
+### Removed
+
+- Leaderboard link from footer
 
 ## [0.1.9] - 2026-04-10
 

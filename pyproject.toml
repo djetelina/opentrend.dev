@@ -1,6 +1,6 @@
 [project]
 name = "opentrend"
-version = "0.1.9"
+version = "0.1.10"
 description = "Open source project metrics dashboard"
 readme = {text = "", content-type = "text/plain"}
 authors = [
