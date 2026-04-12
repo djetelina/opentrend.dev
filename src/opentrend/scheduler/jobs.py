@@ -5,7 +5,7 @@ import time
 import uuid
 from datetime import datetime, timedelta, timezone
 
-from sqlalchemy import func, select
+from sqlalchemy import delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from opentrend.collectors.github import GithubCollector
@@ -15,16 +15,21 @@ from opentrend.config import Settings
 from opentrend.crypto import try_decrypt_token
 from opentrend.metrics import COLLECTION_DURATION, COLLECTION_TOTAL
 from opentrend.models.project import PackageMapping, Project
-from opentrend.models.snapshot import TrafficSnapshot
+from opentrend.models.snapshot import (
+    GithubSnapshot,
+    ReleaseDownloadSnapshot,
+    TrafficSnapshot,
+)
 from opentrend.models.user import User
 from opentrend.services.dashboard import DashboardService
 
 logger = logging.getLogger(__name__)
 
 
-def compute_collection_hour(project_id: uuid.UUID) -> int:
-    h = hashlib.sha256(str(project_id).encode()).hexdigest()
-    return int(h, 16) % 24
+def compute_collection_time(project_id: uuid.UUID) -> tuple[int, int]:
+    """Return (hour, minute) for a project's daily collection slot."""
+    h = int(hashlib.sha256(str(project_id).encode()).hexdigest(), 16)
+    return h % 24, (h // 24) % 60
 
 
 async def collect_project(
@@ -61,7 +66,7 @@ async def collect_project(
         )
         mappings = list(result.scalars().all())
 
-    async def _instrumented(name: str, coro) -> bool:
+    async def _instrumented(name: str, coro, *, final: bool = False) -> bool:
         """Run a collector coroutine with metrics and error handling."""
         start = time.monotonic()
         try:
@@ -70,49 +75,65 @@ async def collect_project(
             return True
         except Exception:
             COLLECTION_TOTAL.labels(collector=name, status="error").inc()
-            logger.exception("Collection failed for %s (project %s)", name, project_id)
+            if final:
+                logger.exception(
+                    "Collection failed for %s (project %s)", name, project_id
+                )
+            else:
+                logger.warning(
+                    "Collection failed for %s (project %s), will retry",
+                    name,
+                    project_id,
+                )
             return False
         finally:
             COLLECTION_DURATION.labels(collector=name).observe(time.monotonic() - start)
 
-    async def _collect_github() -> bool:
+    async def _collect_github(*, final: bool = False) -> bool:
         if token is None:
             logger.warning(
                 "No token for project %s, skipping GitHub collection", project_id
             )
             return True
-        return await _instrumented("github", _run_github())
-
-    async def _run_github():
         async with session_factory() as db:
-            await GithubCollector(token=token).collect(db, project_id, snapshot_date)
+            return await _instrumented(
+                "github",
+                GithubCollector(token=token).collect(db, project_id, snapshot_date),
+                final=final,
+            )
 
-    async def _collect_traffic() -> bool:
+    async def _collect_traffic(*, final: bool = False) -> bool:
         if token is None:
             return True
-        return await _instrumented("traffic", _run_traffic())
-
-    async def _run_traffic():
         async with session_factory() as db:
-            await TrafficCollector(token=token).collect(db, project_id, snapshot_date)
+            return await _instrumented(
+                "traffic",
+                TrafficCollector(token=token).collect(db, project_id, snapshot_date),
+                final=final,
+            )
 
-    async def _collect_mapping(mapping) -> bool:
+    async def _collect_mapping(mapping, *, final: bool = False) -> bool:
         collector = get_package_collector(mapping.source, github_token=token)
         if collector is None:
             return True
-        return await _instrumented(mapping.source, _run_mapping(collector, mapping))
-
-    async def _run_mapping(collector, mapping):
         async with session_factory() as db:
-            await collector.collect(db, mapping.id, snapshot_date)
+            return await _instrumented(
+                mapping.source,
+                collector.collect(db, mapping.id, snapshot_date),
+                final=final,
+            )
 
     tasks = {
         "github": _collect_github,
         "traffic": _collect_traffic,
-        **{f"mapping_{m.id}": lambda m=m: _collect_mapping(m) for m in mappings},
+        **{
+            f"mapping_{m.id}": lambda m=m, **kw: _collect_mapping(m, **kw)
+            for m in mappings
+        },
     }
 
-    results = await asyncio.gather(*[fn() for fn in tasks.values()])
+    is_final = not retry
+    results = await asyncio.gather(*[fn(final=is_final) for fn in tasks.values()])
     failed = [name for name, ok in zip(tasks, results) if not ok]
 
     if retry and failed:
@@ -120,6 +141,7 @@ async def collect_project(
         for attempt, delay in enumerate(retry_delays, 1):
             if not failed:
                 break
+            is_final = attempt == len(retry_delays)
             logger.info(
                 "Retrying %d failed collector(s) for project %s in %ds (attempt %d/%d): %s",
                 len(failed),
@@ -130,7 +152,9 @@ async def collect_project(
                 ", ".join(failed),
             )
             await asyncio.sleep(delay)
-            retry_results = await asyncio.gather(*[tasks[name]() for name in failed])
+            retry_results = await asyncio.gather(
+                *[tasks[name](final=is_final) for name in failed]
+            )
             failed = [name for name, ok in zip(failed, retry_results) if not ok]
 
     if failed:
@@ -212,6 +236,30 @@ async def recalc_all_reach(
     await asyncio.gather(*[_bounded(pid) for pid in project_ids])
 
 
+async def cleanup_old_release_snapshots(
+    session_factory: async_sessionmaker[AsyncSession],
+    retention_days: int = 90,
+) -> None:
+    """Delete release download snapshots older than retention_days.
+
+    The download_count on GitHub release assets is cumulative, so only the
+    latest snapshot per asset matters for current totals.  We keep 90 days
+    of history to support the download-trend chart, then discard the rest.
+    """
+    cutoff = datetime.now(timezone.utc).date() - timedelta(days=retention_days)
+    async with session_factory() as session:
+        result = await session.execute(
+            delete(ReleaseDownloadSnapshot).where(ReleaseDownloadSnapshot.date < cutoff)
+        )
+        await session.commit()
+        if result.rowcount:
+            logger.info(
+                "Cleaned up %d release download snapshots older than %s",
+                result.rowcount,
+                cutoff,
+            )
+
+
 def register_project_job(
     scheduler,
     session_factory: async_sessionmaker[AsyncSession],
@@ -219,17 +267,19 @@ def register_project_job(
     project_id: uuid.UUID,
 ) -> None:
     """Register a single project for daily collection."""
-    hour = compute_collection_hour(project_id)
+    hour, minute = compute_collection_time(project_id)
     scheduler.add_job(
         collect_project,
         "cron",
         hour=hour,
-        minute=0,
+        minute=minute,
         args=[session_factory, settings, project_id],
         id=f"collect_project_{project_id}",
         replace_existing=True,
     )
-    logger.info("Scheduled project %s collection at %02d:00", project_id, hour)
+    logger.info(
+        "Scheduled project %s collection at %02d:%02d", project_id, hour, minute
+    )
 
 
 async def schedule_daily_collections(
@@ -244,3 +294,45 @@ async def schedule_daily_collections(
 
     for pid in project_ids:
         register_project_job(scheduler, session_factory, settings, pid)
+
+    # Catch-up: run any projects whose scheduled slot already passed today
+    # without a snapshot (e.g. after a deploy that shifts schedule times).
+    today = datetime.now(timezone.utc).date()
+    now = datetime.now(timezone.utc)
+    async with session_factory() as session:
+        collected_result = await session.execute(
+            select(GithubSnapshot.project_id).where(GithubSnapshot.date == today)
+        )
+        collected_today = {row[0] for row in collected_result.all()}
+
+    missed = []
+    for pid in project_ids:
+        if pid in collected_today:
+            continue
+        hour, minute = compute_collection_time(pid)
+        scheduled = now.replace(hour=hour, minute=minute, second=0, microsecond=0)
+        if scheduled <= now:
+            missed.append(pid)
+
+    if missed:
+        logger.info(
+            "Catch-up: %d project(s) missed today's slot, queuing now", len(missed)
+        )
+        for pid in missed:
+            scheduler.add_job(
+                collect_project,
+                args=[session_factory, settings, pid],
+                id=f"catchup_{pid}",
+                replace_existing=True,
+            )
+
+    scheduler.add_job(
+        cleanup_old_release_snapshots,
+        "cron",
+        hour=3,
+        minute=17,
+        args=[session_factory],
+        id="cleanup_old_release_snapshots",
+        replace_existing=True,
+    )
+    logger.info("Scheduled daily release snapshot cleanup at 03:17")

@@ -39,7 +39,7 @@ class GithubCollector(ProjectCollector):
         }
 
     @staticmethod
-    def parse_releases(releases: list[dict]) -> dict:
+    def parse_releases(releases: list[dict], release_count: int | None = None) -> dict:
         assets = []
         for r in releases:
             for a in r.get("assets", []):
@@ -60,7 +60,9 @@ class GithubCollector(ProjectCollector):
                 latest_date = datetime.fromisoformat(published)
 
         return {
-            "release_count": len(releases),
+            "release_count": release_count
+            if release_count is not None
+            else len(releases),
             "latest_release_date": latest_date,
             "latest_release_tag": latest_tag,
             "assets": assets,
@@ -142,6 +144,35 @@ class GithubCollector(ProjectCollector):
                         return int(match.group(1))
                 return 1 if r.json() else 0
 
+            async def _fetch_releases() -> tuple[list[dict], int]:
+                """Fetch one page of releases (for assets) and total count via Link header."""
+                # First, get total count cheaply
+                r = await client.get(
+                    f"{GITHUB_API}/repos/{repo}/releases",
+                    params={"per_page": "1"},
+                    headers=headers,
+                )
+                r.raise_for_status()
+                count = 0
+                link = r.headers.get("Link", "")
+                if 'rel="last"' in link:
+                    match = re.search(r'page=(\d+)>; rel="last"', link)
+                    if match:
+                        count = int(match.group(1))
+                elif r.json():
+                    count = 1
+
+                # Then fetch one full page for asset data
+                if count == 0:
+                    return [], 0
+                r2 = await client.get(
+                    f"{GITHUB_API}/repos/{repo}/releases",
+                    params={"per_page": "100"},
+                    headers=headers,
+                )
+                r2.raise_for_status()
+                return r2.json(), count
+
             async def _community() -> int | None:
                 r = await client.get(
                     f"{GITHUB_API}/repos/{repo}/community/profile", headers=headers
@@ -163,7 +194,7 @@ class GithubCollector(ProjectCollector):
                     client, f"{GITHUB_API}/repos/{repo}/contributors"
                 ),
                 _commit_count(),
-                self._fetch_all_pages(client, f"{GITHUB_API}/repos/{repo}/releases"),
+                _fetch_releases(),
                 self._fetch_stats(
                     client, f"{GITHUB_API}/repos/{repo}/stats/commit_activity"
                 ),
@@ -203,13 +234,17 @@ class GithubCollector(ProjectCollector):
                 closed_prs,
                 contributors,
                 commits_total,
-                releases,
+                releases_result,
                 commit_activity,
                 code_frequency,
                 contributors_stats,
                 community_health,
             ) = resolved
-            release_data = self.parse_releases(releases or [])
+            if releases_result is not None:
+                releases, release_count = releases_result
+            else:
+                releases, release_count = [], None
+            release_data = self.parse_releases(releases, release_count)
 
         # Dependents (scraped from web UI — separate client, no auth headers)
         dependents_repos = None

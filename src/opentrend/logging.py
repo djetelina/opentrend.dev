@@ -62,3 +62,6 @@ def setup_logging(log_level: str = "INFO") -> None:
     logging.getLogger("uvicorn.access").setLevel(logging.WARNING)
     logging.getLogger("apscheduler").setLevel(logging.WARNING)
     logging.getLogger("alembic.runtime.plugins").setLevel(logging.WARNING)
+    # urllib3 logs WARNING on every retry attempt for transient connection errors
+    # (FD racing, reset connections) — these are handled by the retry and just noise
+    logging.getLogger("urllib3.util.retry").setLevel(logging.ERROR)

@@ -94,11 +94,11 @@ def _format_release_ago(latest_gh) -> str | None:
 
 def _compute_next_scan(project_id) -> tuple[str, str]:
     """Compute scan timing info. Returns (next_scan_utc, next_scan_in)."""
-    from opentrend.scheduler.jobs import compute_collection_hour
+    from opentrend.scheduler.jobs import compute_collection_time
 
-    hour = compute_collection_hour(project_id)
+    hour, minute = compute_collection_time(project_id)
     now = datetime.now(timezone.utc)
-    today_scan = now.replace(hour=hour, minute=0, second=0, microsecond=0)
+    today_scan = now.replace(hour=hour, minute=minute, second=0, microsecond=0)
     next_scan = today_scan if now < today_scan else today_scan + timedelta(days=1)
 
     total_seconds = (next_scan - now).total_seconds()

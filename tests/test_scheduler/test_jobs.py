@@ -1,26 +1,25 @@
 import uuid
 
-from opentrend.scheduler.jobs import compute_collection_hour
+from opentrend.scheduler.jobs import compute_collection_time
 
 
 def _uuid(n: int) -> uuid.UUID:
     return uuid.UUID(int=n)
 
 
-def test_compute_collection_hour_deterministic() -> None:
+def test_compute_collection_time_deterministic() -> None:
     pid = _uuid(1)
-    hour1 = compute_collection_hour(pid)
-    hour2 = compute_collection_hour(pid)
-    assert hour1 == hour2
+    assert compute_collection_time(pid) == compute_collection_time(pid)
 
 
-def test_compute_collection_hour_in_range() -> None:
+def test_compute_collection_time_in_range() -> None:
     for i in range(1, 100):
-        hour = compute_collection_hour(_uuid(i))
+        hour, minute = compute_collection_time(_uuid(i))
         assert 0 <= hour < 24
+        assert 0 <= minute < 60
 
 
-def test_compute_collection_hour_distributes() -> None:
-    hours = {compute_collection_hour(_uuid(i)) for i in range(1, 50)}
-    # Should hit at least 10 different hours with 49 projects
-    assert len(hours) >= 10
+def test_compute_collection_time_distributes() -> None:
+    times = {compute_collection_time(_uuid(i)) for i in range(1, 50)}
+    # With 49 projects spread across 1440 minute-slots, most should be unique
+    assert len(times) >= 30

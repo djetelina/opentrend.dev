@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.11] - 2026-04-12
+
+### Changed
+
+- Release download snapshots now only collect assets from the 100 most recent releases instead of all releases, and get total release count cheaply from the Link header — reduces API calls from up to 50 paginated requests to 2
+- Daily cleanup job prunes release download snapshots older than 90 days (cumulative counters make older snapshots redundant)
+- Project collection schedules now spread across all 1,440 minute-slots per day instead of only 24 hour-slots, reducing rate-limit pressure on upstream APIs
+- Catch-up logic on startup: projects whose scheduled slot already passed today without a snapshot are queued immediately, preventing skipped days after deploys
+- Collection failures log at warning level with "will retry" on non-final attempts; full stack trace only on the final attempt
+- Silenced urllib3 retry warnings for transient connection errors (FD racing) that are handled automatically
+
 ## [0.1.10] - 2026-04-12
 
 ### Fixed
