@@ -4,7 +4,6 @@ document.addEventListener('DOMContentLoaded', function() {
     var chart = echarts.init(document.getElementById('chart-prs'));
     var openData = {{ prs_series | safe }};
     var closedData = {{ closed_prs_series | safe }};
-    var dates = openData.map(function(d) { return d.date; });
     var f = "'IBM Plex Mono', monospace";
     chart.setOption({
         backgroundColor: 'transparent',
@@ -23,10 +22,9 @@ document.addEventListener('DOMContentLoaded', function() {
         },
         grid: { left: 48, right: 48, top: 28, bottom: 24 },
         xAxis: {
-            type: 'category',
-            data: dates,
+            type: 'time',
             axisLine: { lineStyle: { color: '#363642' } },
-            axisLabel: { color: '#9090a0', fontFamily: f, fontSize: 10 },
+            axisLabel: { color: '#9090a0', fontFamily: f, fontSize: 10, hideOverlap: true },
             axisTick: { show: false }
         },
         yAxis: [
@@ -52,7 +50,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 name: 'Open',
                 type: 'line',
                 yAxisIndex: 0,
-                data: openData.map(function(d) { return d.value; }),
+                data: openData.map(function(d) { return [d.date, d.value]; }),
                 smooth: false,
                 showSymbol: openData.length <= 30,
                 lineStyle: { color: '#8b5cf6', width: 1.5 },
@@ -68,7 +66,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 name: 'Merged',
                 type: 'line',
                 yAxisIndex: 1,
-                data: closedData.map(function(d) { return d.value; }),
+                data: closedData.map(function(d) { return [d.date, d.value]; }),
                 smooth: false,
                 showSymbol: openData.length <= 30,
                 lineStyle: { color: '#22c55e', width: 1.5 },

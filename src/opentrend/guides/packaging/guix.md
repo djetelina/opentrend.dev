@@ -11,7 +11,7 @@ requirements:
   - "Submitted via mailing list"
 ---
 
-GNU Guix is a functional package manager (and full Linux distribution) that uses GNU Guile Scheme for package definitions. Every package is a reproducible build recipe — no global state, no side effects. Guix has strong free software principles and a welcoming community. Packages are submitted via patches to the `guix-patches` mailing list.
+GNU Guix is a functional package manager (and full Linux distribution) that uses GNU Guile Scheme for package definitions. Every package is a reproducible build recipe - no global state, no side effects. Guix has strong free software principles and a welcoming community. Packages are submitted via patches to the `guix-patches` mailing list.
 
 ## 1. Set up a development environment
 
@@ -91,4 +91,4 @@ Use `git send-email` or attach the patch to an email to `guix-patches@gnu.org`. 
 
 Follow the commit message convention: `gnu: Add yourpkg.` for new packages, `gnu: yourpkg: Update to 1.3.0.` for version bumps.
 
-**Tip:** For faster iteration, use a [channel](https://guix.gnu.org/manual/en/html_node/Channels.html) — your own Guix package repository that users can add alongside the official one, similar to a Homebrew tap.
+**Tip:** For faster iteration, use a [channel](https://guix.gnu.org/manual/en/html_node/Channels.html) - your own Guix package repository that users can add alongside the official one, similar to a Homebrew tap.

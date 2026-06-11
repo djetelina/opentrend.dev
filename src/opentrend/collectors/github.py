@@ -68,6 +68,35 @@ class GithubCollector(ProjectCollector):
             "assets": assets,
         }
 
+    @staticmethod
+    def parse_contributor_commits(
+        contributors_stats: object, owner_login: str
+    ) -> tuple[str | None, str | None]:
+        """Build (owner_weekly, all_weekly) commit-series JSON from /stats/contributors.
+
+        Owner = repo owner login; bots (``*[bot]``) are excluded from the
+        community total. GitHub returns ``"author": null`` for deleted or
+        anonymous accounts, so the author dict must be guarded.
+        """
+        if not contributors_stats or not isinstance(contributors_stats, list):
+            return None, None
+        num_weeks = max(
+            (len(c.get("weeks", [])) for c in contributors_stats), default=0
+        )
+        owner_weekly = [0] * num_weeks
+        all_weekly = [0] * num_weeks
+        for contributor in contributors_stats:
+            author = contributor.get("author") or {}
+            login = author.get("login", "")
+            is_bot = login.endswith("[bot]")
+            for i, w in enumerate(contributor.get("weeks", [])):
+                commits_count = w.get("c", 0)
+                if not is_bot:
+                    all_weekly[i] += commits_count
+                if login == owner_login:
+                    owner_weekly[i] += commits_count
+        return json.dumps(owner_weekly), json.dumps(all_weekly)
+
     async def _fetch_stats(
         self, client: niquests.AsyncSession, url: str
     ) -> dict | list | None:
@@ -246,7 +275,7 @@ class GithubCollector(ProjectCollector):
                 releases, release_count = [], None
             release_data = self.parse_releases(releases, release_count)
 
-        # Dependents (scraped from web UI — separate client, no auth headers)
+        # Dependents (scraped from web UI - separate client, no auth headers)
         dependents_repos = None
         dependents_packages = None
         try:
@@ -296,27 +325,9 @@ class GithubCollector(ProjectCollector):
         # Build owner vs community from /stats/contributors
         # (participation endpoint conflates bots with community; contributors lets us filter by login)
         # Owner = repo owner login, bots = *[bot], community = everyone else
-        weekly_owner_commits = None
-        weekly_all_commits = None
-        if contributors_stats and isinstance(contributors_stats, list):
-            owner_login = repo.split("/")[0]
-            num_weeks = max(
-                (len(c.get("weeks", [])) for c in contributors_stats), default=0
-            )
-            owner_weekly = [0] * num_weeks
-            all_weekly = [0] * num_weeks
-            for contributor in contributors_stats:
-                login = contributor.get("author", {}).get("login", "")
-                is_bot = login.endswith("[bot]")
-                weeks = contributor.get("weeks", [])
-                for i, w in enumerate(weeks):
-                    commits_count = w.get("c", 0)
-                    if not is_bot:
-                        all_weekly[i] += commits_count
-                    if login == owner_login:
-                        owner_weekly[i] += commits_count
-            weekly_owner_commits = json.dumps(owner_weekly)
-            weekly_all_commits = json.dumps(all_weekly)
+        weekly_owner_commits, weekly_all_commits = self.parse_contributor_commits(
+            contributors_stats, repo.split("/")[0]
+        )
 
         # Build snapshot fields once, use for both insert and update
         # Core repo fields always present (from /repos endpoint which must succeed)

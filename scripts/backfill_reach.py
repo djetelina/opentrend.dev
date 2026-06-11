@@ -1,6 +1,6 @@
 """Backfill reach_score for all existing github_snapshots.
 
-NOTE: Uses DashboardService.compute_reach for the formula — keep in sync.
+NOTE: Uses DashboardService.compute_reach for the formula - keep in sync.
 """
 
 import asyncio

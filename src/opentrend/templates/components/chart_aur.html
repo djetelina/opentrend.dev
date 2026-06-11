@@ -4,7 +4,6 @@ document.addEventListener('DOMContentLoaded', function() {
     var chart = echarts.init(document.getElementById('chart-aur'));
     var votesData = {{ aur_votes_series | safe }};
     var popData = {{ aur_popularity_series | safe }};
-    var dates = votesData.map(function(d) { return d.date; });
     var f = "'IBM Plex Mono', monospace";
     chart.setOption({
         backgroundColor: 'transparent',
@@ -23,10 +22,9 @@ document.addEventListener('DOMContentLoaded', function() {
         },
         grid: { left: 48, right: 48, top: 28, bottom: 24 },
         xAxis: {
-            type: 'category',
-            data: dates,
+            type: 'time',
             axisLine: { lineStyle: { color: '#363642' } },
-            axisLabel: { color: '#9090a0', fontFamily: f, fontSize: 10 },
+            axisLabel: { color: '#9090a0', fontFamily: f, fontSize: 10, hideOverlap: true },
             axisTick: { show: false }
         },
         yAxis: [
@@ -52,7 +50,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 name: 'Votes',
                 type: 'line',
                 yAxisIndex: 0,
-                data: votesData.map(function(d) { return d.value; }),
+                data: votesData.map(function(d) { return [d.date, d.value]; }),
                 smooth: false,
                 showSymbol: votesData.length <= 30,
                 symbolSize: 3,
@@ -63,7 +61,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 name: 'Popularity',
                 type: 'line',
                 yAxisIndex: 1,
-                data: popData.map(function(d) { return d.value; }),
+                data: popData.map(function(d) { return [d.date, d.value]; }),
                 smooth: false,
                 showSymbol: popData.length <= 30,
                 symbolSize: 3,

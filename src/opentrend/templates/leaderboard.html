@@ -1,5 +1,7 @@
 {% extends "base.html" %}
-{% block title %}Leaderboard — opentrend.dev{% endblock %}
+{% block title %}Leaderboard | opentrend.dev{% endblock %}
+{% block canonical %}{{ site_url }}/leaderboard{% endblock %}
+{% block meta_description %}The most-adopted open source projects tracked on OpenTrend, ranked by reach score across GitHub, package registries, and OS distributions.{% endblock %}
 {% block content %}
 {# Source icons with distinguishable glyphs + brand colors #}
 {% set source_icon = {
@@ -29,7 +31,7 @@
     "freebsd": ("&#xf30c;", "#ab2b28"),
     "termux": ("&#xf489;", "#607d8b"),
 } %}
-{# Sources with distinct icons — dedupe families (arch+aur → arch, homebrew+tap → homebrew) #}
+{# Sources with distinct icons - dedupe families (arch+aur → arch, homebrew+tap → homebrew) #}
 {% set preferred_order = ["pypi", "npm", "crates_io", "rubygems", "go", "maven", "nuget", "packagist", "homebrew", "arch", "debian", "ubuntu", "fedora", "nix", "alpine", "gentoo", "void", "freebsd", "chocolatey", "scoop", "opensuse", "macports", "termux"] %}
 {% set family_suppress = {"aur": "arch", "homebrew_tap": "homebrew"} %}
 {# Fallbacks: if the preferred source is absent, show the family member instead #}
@@ -39,7 +41,7 @@
 
     <div class="mb-8">
         <h1 class="text-3xl font-semibold text-fg-bright tracking-tight mb-2">leaderboard</h1>
-        <p class="text-fg-dim text-sm">Projects ranked by <a href="/data#reach-score" class="text-fg hover:text-fg-bright underline">reach score</a> — a composite of stars, downloads, package distribution, and community activity.</p>
+        <p class="text-fg-dim text-sm">Projects ranked by <a href="/data#reach-score" class="text-fg hover:text-fg-bright underline">reach score</a> - a composite of stars, downloads, package distribution, and community activity.</p>
     </div>
 
     {% if entries %}

@@ -47,7 +47,7 @@ async def collect_project(
         if project is None:
             return
 
-        # Load the project owner's token (optional — needed for GitHub/traffic only)
+        # Load the project owner's token (optional - needed for GitHub/traffic only)
         user_result = await session.execute(
             select(User).where(User.id == project.user_id)
         )

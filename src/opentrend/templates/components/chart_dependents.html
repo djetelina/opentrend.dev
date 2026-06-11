@@ -33,7 +33,6 @@ document.addEventListener('DOMContentLoaded', function() {
             data: s.data.map(function(d) { return [d.date, d.value]; })
         };
     });
-    var dates = allSeries[0].data.map(function(d) { return d.date; });
 
     var yAxes = [{
         type: 'value',
@@ -71,10 +70,9 @@ document.addEventListener('DOMContentLoaded', function() {
         },
         grid: { left: 48, right: needsDualY ? 48 : 16, top: 28, bottom: 24 },
         xAxis: {
-            type: 'category',
-            data: dates,
+            type: 'time',
             axisLine: { lineStyle: { color: '#363642' } },
-            axisLabel: { color: '#9090a0', fontFamily: f, fontSize: 10 },
+            axisLabel: { color: '#9090a0', fontFamily: f, fontSize: 10, hideOverlap: true },
             axisTick: { show: false }
         },
         yAxis: yAxes,

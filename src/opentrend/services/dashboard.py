@@ -97,16 +97,17 @@ class DashboardService:
         )
 
     @staticmethod
-    def compute_reach(
-        gh: GithubSnapshot | None,
+    def _reach_components(
+        gh: GithubSnapshot,
         matrix: list[PackagingMatrixRow],
         total_downloads: int,
         traffic_views: int = 0,
         traffic_clones: int = 0,
-    ) -> int:
-        """Composite reach score: weighted sum of sqrt(stars)*30, sqrt(forks)*20, and log1p-scaled contributors, watchers, sources, downloads, dependents, and traffic."""
-        if not gh:
-            return 0
+    ) -> list[tuple[str, str, float]]:
+        """Ordered (label, detail, points) tuples that sum to the reach score.
+
+        Single source of truth for both the score and its on-page breakdown.
+        """
         source_count = sum(1 for r in matrix if r.get("version"))
         # GitHub dependents (authoritative), fall back to registry dependents
         gh_deps = (gh.dependents_repos or 0) + (gh.dependents_packages or 0)
@@ -115,17 +116,73 @@ class DashboardService:
             if gh_deps > 0
             else sum(r.get("dependents_count") or 0 for r in matrix)
         )
+        return [
+            ("stars", f"{gh.stars:,}", math.sqrt(gh.stars) * 30),
+            ("forks", f"{gh.forks:,}", math.sqrt(gh.forks) * 20),
+            (
+                "contributors",
+                f"{gh.contributors or 0:,}",
+                math.log1p(gh.contributors or 0) * 40,
+            ),
+            ("watchers", f"{gh.watchers or 0:,}", math.log1p(gh.watchers or 0) * 20),
+            ("package sources", f"{source_count}", math.log1p(source_count) * 50),
+            (
+                "downloads / mo",
+                f"{total_downloads:,}",
+                math.log1p(total_downloads) * 20,
+            ),
+            # sqrt (not log1p): rewards heavily-depended-on libraries instead of
+            # flattening after the first few dependents. Weight calibrated so the
+            # value matches the old log1p curve at ~100 dependents.
+            ("dependents", f"{total_dependents:,}", math.sqrt(total_dependents) * 18),
+            ("page views (30d)", f"{traffic_views:,}", math.log1p(traffic_views) * 15),
+            (
+                "git clones (30d)",
+                f"{traffic_clones:,}",
+                math.log1p(traffic_clones) * 15,
+            ),
+        ]
+
+    @staticmethod
+    def compute_reach(
+        gh: GithubSnapshot | None,
+        matrix: list[PackagingMatrixRow],
+        total_downloads: int,
+        traffic_views: int = 0,
+        traffic_clones: int = 0,
+    ) -> int:
+        """Composite reach score: weighted sum of sqrt(stars)*30, sqrt(forks)*20, sqrt(dependents)*18, and log1p-scaled contributors, watchers, sources, downloads, and traffic."""
+        if not gh:
+            return 0
         return round(
-            math.sqrt(gh.stars) * 30
-            + math.sqrt(gh.forks) * 20
-            + math.log1p(gh.contributors or 0) * 40
-            + math.log1p(gh.watchers or 0) * 20
-            + math.log1p(source_count) * 50
-            + math.log1p(total_downloads) * 20
-            + math.log1p(total_dependents) * 40
-            + math.log1p(traffic_views) * 15
-            + math.log1p(traffic_clones) * 15
+            sum(
+                points
+                for _, _, points in DashboardService._reach_components(
+                    gh, matrix, total_downloads, traffic_views, traffic_clones
+                )
+            )
         )
+
+    @staticmethod
+    def reach_breakdown(
+        gh: GithubSnapshot | None,
+        matrix: list[PackagingMatrixRow],
+        total_downloads: int,
+        traffic_views: int = 0,
+        traffic_clones: int = 0,
+    ) -> list[dict]:
+        """Non-zero reach contributions, largest first, for the on-page popup."""
+        if not gh:
+            return []
+        rows = [
+            {"label": label, "detail": detail, "points": round(points)}
+            for label, detail, points in DashboardService._reach_components(
+                gh, matrix, total_downloads, traffic_views, traffic_clones
+            )
+            if round(points) > 0
+        ]
+        rows.sort(key=lambda r: r["points"], reverse=True)
+        return rows
 
     @staticmethod
     def compute_total_downloads(matrix: list[PackagingMatrixRow]) -> int:
@@ -145,7 +202,7 @@ class DashboardService:
         """Group release downloads by release_tag using the latest snapshot per asset.
 
         GitHub reports cumulative download counts, so we only want the most
-        recent snapshot for each (release_tag, asset_name) pair — older
+        recent snapshot for each (release_tag, asset_name) pair - older
         snapshots are superseded by newer ones.
         """
         # Keep only the latest snapshot per (release_tag, asset_name)

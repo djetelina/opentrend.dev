@@ -177,7 +177,7 @@ async def test_db_error_does_not_set_cache() -> None:
 
     await refresh_business_metrics(session)
 
-    # Cache should NOT be set — next call should retry
+    # Cache should NOT be set - next call should retry
     assert "done" not in _business_metrics_cache
 
 

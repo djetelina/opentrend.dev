@@ -70,7 +70,7 @@ The audit step catches common issues like missing test blocks, style violations,
 
 Fork [homebrew-core](https://github.com/Homebrew/homebrew-core), add your formula to `Formula/y/yourpkg.rb` (first letter subdirectory), and open a pull request.
 
-Read the [acceptable formulae](https://docs.brew.sh/Acceptable-Formulae) criteria first — Homebrew has strict requirements:
+Read the [acceptable formulae](https://docs.brew.sh/Acceptable-Formulae) criteria first - Homebrew has strict requirements:
 - Must be open source with a stable release
 - Must have a test block
 - Must not be a "library" (should have a binary or user-facing utility)
@@ -78,6 +78,6 @@ Read the [acceptable formulae](https://docs.brew.sh/Acceptable-Formulae) criteri
 
 ## 5. Auto-updates
 
-Once merged, Homebrew's `brew livecheck` bot monitors your GitHub releases and auto-bumps the formula version via automated PRs. No manual maintenance needed for most projects — just keep making GitHub releases.
+Once merged, Homebrew's `brew livecheck` bot monitors your GitHub releases and auto-bumps the formula version via automated PRs. No manual maintenance needed for most projects - just keep making GitHub releases.
 
-**Tip:** If your project doesn't meet homebrew-core criteria, consider a [Homebrew Tap](/guides/packaging/homebrew_tap) instead — your own formula repository with no review process.
+**Tip:** If your project doesn't meet homebrew-core criteria, consider a [Homebrew Tap](/guides/packaging/homebrew_tap) instead - your own formula repository with no review process.

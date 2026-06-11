@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Edit {{ project.display_name }} — opentrend.dev{% endblock %}
+{% block title %}Edit {{ project.display_name }} | opentrend.dev{% endblock %}
 {% block content %}
 <div class="px-8 lg:px-12 xl:px-16 py-8">
 
@@ -133,7 +133,7 @@
                 <input type="checkbox" name="public" value="1" {{ 'checked' if project.public else '' }}
                        class="accent-green-500 w-3.5 h-3.5 shrink-0">
                 <span class="text-fg">Public dashboard</span>
-                <span class="text-fg-faint text-xs">— anyone can view this project's dashboard without signing in</span>
+                <span class="text-fg-faint text-xs">- anyone can view this project's dashboard without signing in</span>
             </label>
         </div>
 

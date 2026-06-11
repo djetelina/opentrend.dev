@@ -3,7 +3,7 @@ from litestar.testing import TestClient
 
 def test_home_route_exists(client: TestClient) -> None:
     response = client.get("/")
-    # 200 with DB, 500 without — route exists and dispatches
+    # 200 with DB, 500 without - route exists and dispatches
     assert response.status_code in (200, 500)
 
 
@@ -14,7 +14,7 @@ def test_data_page_returns_200(client: TestClient) -> None:
 
 def test_leaderboard_route_exists(client: TestClient) -> None:
     response = client.get("/leaderboard")
-    # 200 with DB, 500 without — either means the route exists and dispatches
+    # 200 with DB, 500 without - either means the route exists and dispatches
     assert response.status_code in (200, 500)
 
 
@@ -26,8 +26,32 @@ def test_badge_route_exists(client: TestClient) -> None:
 
 def test_health_returns_200(client: TestClient) -> None:
     response = client.get("/health")
-    # 200 with DB, 500 without — route exists
+    # 200 with DB, 500 without - route exists
     assert response.status_code in (200, 500)
+
+
+def test_robots_advertises_sitemap(client: TestClient) -> None:
+    response = client.get("/robots.txt")
+    assert response.status_code == 200
+    assert "Sitemap: https://opentrend.dev/sitemap.xml" in response.text
+    assert "Disallow: /projects" in response.text
+
+
+def test_sitemap_route_exists(client: TestClient) -> None:
+    response = client.get("/sitemap.xml")
+    # 200 with DB, 500 without - route exists and dispatches
+    assert response.status_code in (200, 500)
+    if response.status_code == 200:
+        assert "<urlset" in response.text
+        assert "https://opentrend.dev/" in response.text
+
+
+def test_canonical_and_og_tags_present(client: TestClient) -> None:
+    response = client.get("/data")
+    assert response.status_code == 200
+    assert '<link rel="canonical" href="https://opentrend.dev/data">' in response.text
+    assert '<meta property="og:title"' in response.text
+    assert '<meta name="description"' in response.text
 
 
 def test_security_headers_present(client: TestClient) -> None:

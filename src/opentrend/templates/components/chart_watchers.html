@@ -15,10 +15,9 @@ document.addEventListener('DOMContentLoaded', function() {
         },
         grid: { left: 48, right: 16, top: 12, bottom: 24 },
         xAxis: {
-            type: 'category',
-            data: data.map(function(d) { return d.date; }),
+            type: 'time',
             axisLine: { lineStyle: { color: '#363642' } },
-            axisLabel: { color: '#9090a0', fontFamily: f, fontSize: 10 },
+            axisLabel: { color: '#9090a0', fontFamily: f, fontSize: 10, hideOverlap: true },
             axisTick: { show: false }
         },
         yAxis: {
@@ -31,7 +30,7 @@ document.addEventListener('DOMContentLoaded', function() {
         },
         series: [{
             type: 'line',
-            data: data.map(function(d) { return d.value; }),
+            data: data.map(function(d) { return [d.date, d.value]; }),
             smooth: false,
             showSymbol: data.length <= 30,
             symbolSize: 3,

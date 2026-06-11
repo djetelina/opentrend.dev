@@ -12,7 +12,7 @@ requirements:
   - "Must have a checksum"
 ---
 
-Scoop is a command-line installer for Windows that focuses on developer tools. Unlike Chocolatey, packages are simple JSON manifests with no install scripts — Scoop handles extraction and PATH management. Manifests live in "buckets" (Git repos), and the two official ones are **Main** (popular CLI tools) and **Extras** (GUI apps and less common tools).
+Scoop is a command-line installer for Windows that focuses on developer tools. Unlike Chocolatey, packages are simple JSON manifests with no install scripts - Scoop handles extraction and PATH management. Manifests live in "buckets" (Git repos), and the two official ones are **Main** (popular CLI tools) and **Extras** (GUI apps and less common tools).
 
 ## 1. Write a manifest
 
@@ -77,7 +77,7 @@ Open a PR with your manifest. Scoop maintainers typically review within a few da
 
 ## 4. Use your own bucket
 
-If you prefer not to wait for review or your tool doesn't fit the official buckets, create your own bucket — it's just a Git repo with JSON manifests:
+If you prefer not to wait for review or your tool doesn't fit the official buckets, create your own bucket - it's just a Git repo with JSON manifests:
 
 ```bash
 gh repo create scoop-yourpkg --public

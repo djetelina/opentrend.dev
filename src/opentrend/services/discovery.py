@@ -85,7 +85,7 @@ async def _discover_distro(
     return packages
 
 
-# ── Registry checks (not shared with distro collector — dedicated collectors exist) ──
+# ── Registry checks (not shared with distro collector - dedicated collectors exist) ──
 
 
 async def _check_pypi(

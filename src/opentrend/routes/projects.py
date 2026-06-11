@@ -314,7 +314,7 @@ class ProjectController(Controller):
                     await db_session.flush()
             except IntegrityError:
                 logger.info(
-                    "Keeping mapping %s:%s (id=%d) — has existing snapshots",
+                    "Keeping mapping %s:%s (id=%d) - has existing snapshots",
                     m.source,
                     m.package_name,
                     m.id,

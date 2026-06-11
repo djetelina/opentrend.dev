@@ -159,6 +159,34 @@ class TestComputeReach:
         assert score_with_traffic > score_no_traffic
 
 
+class TestReachBreakdown:
+    def test_returns_empty_when_no_github(self) -> None:
+        assert DashboardService.reach_breakdown(None, [], 0) == []
+
+    def test_hides_zero_contributions(self) -> None:
+        gh = make_github_snapshot(
+            date(2026, 1, 1), stars=100, forks=0, contributors=0, watchers=0
+        )
+        rows = DashboardService.reach_breakdown(gh, [], 0)
+        labels = {r["label"] for r in rows}
+        assert "stars" in labels  # non-zero contribution shown
+        assert "forks" not in labels  # zero contributions hidden
+        assert "watchers" not in labels
+        assert all(r["points"] > 0 for r in rows)
+
+    def test_sorted_descending_and_sums_to_reach(self) -> None:
+        gh = make_github_snapshot(
+            date(2026, 1, 1), stars=1000, forks=200, contributors=20, watchers=15
+        )
+        matrix = [{"version": "1.0.0", "dependents_count": 50}]
+        rows = DashboardService.reach_breakdown(gh, matrix, total_downloads=10000)
+        points = [r["points"] for r in rows]
+        assert points == sorted(points, reverse=True)
+        # Sum of rounded contributions matches the score within rounding error.
+        reach = DashboardService.compute_reach(gh, matrix, total_downloads=10000)
+        assert abs(sum(points) - reach) <= len(rows)
+
+
 class TestComputeGithubDeltas:
     def test_both_snapshots(self) -> None:
         latest = make_github_snapshot(date(2026, 1, 7), stars=110, forks=15)

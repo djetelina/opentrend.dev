@@ -14,7 +14,7 @@ Termux is a terminal emulator and Linux environment for Android. It has its own 
 
 ## 1. Set up the build environment
 
-Clone the termux-packages repo and build using Docker (recommended — avoids polluting your host):
+Clone the termux-packages repo and build using Docker (recommended - avoids polluting your host):
 
 ```bash
 git clone https://github.com/termux/termux-packages.git

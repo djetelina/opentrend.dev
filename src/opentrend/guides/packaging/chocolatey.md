@@ -26,7 +26,7 @@ This generates a directory with template files: `yourpkg.nuspec`, `tools/chocola
 
 ## 2. Define the .nuspec manifest
 
-The `.nuspec` file contains package metadata — name, version, description, and dependencies:
+The `.nuspec` file contains package metadata - name, version, description, and dependencies:
 
 ```xml
 <?xml version="1.0" encoding="utf-8"?>
@@ -92,4 +92,4 @@ choco push yourpkg.1.2.0.nupkg --source https://push.chocolatey.org/
 
 Packages enter a moderation queue where automated checks verify checksums, scan for viruses, and validate the install script. A human moderator then reviews the package. First submissions typically take 1-7 days. Subsequent version updates are faster, especially if the package has a clean history.
 
-**Tip:** Use [AU (Automatic Updater)](https://github.com/majkinetor/au) to automate version bumps — it monitors your GitHub releases and submits updated packages to Chocolatey automatically.
+**Tip:** Use [AU (Automatic Updater)](https://github.com/majkinetor/au) to automate version bumps - it monitors your GitHub releases and submits updated packages to Chocolatey automatically.

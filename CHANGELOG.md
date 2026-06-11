@@ -7,11 +7,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-06-11
+
+### Added
+
+- Dynamic `sitemap.xml` listing public pages, packaging guides, and public project dashboards (with last-snapshot `lastmod`); `robots.txt` is now generated, advertises the sitemap, and allows public content to be crawled
+- SEO meta tags on every page: description, canonical URL, Open Graph, and Twitter Card
+- Dynamic Open Graph / social card images - per-project cards at `/p/{owner}/{repo}/og.png` (public projects only, rendered with Pillow) and a default card at `/og.png`
+- Reach-score breakdown on project dashboards: a "?" next to the reach number opens a popup itemizing each scoring component's point contribution (zero contributions hidden)
+- Time-range selector on project dashboards (30d / 90d / 180d / 1y), including a new 180d preset
+- `BASE_URL` setting for canonical/OG/sitemap absolute links (defaults to `https://opentrend.dev`)
+
+### Changed
+
+- Featured example dashboard on the landing page switched from tofuref to cheznav
+- Reach score: the `dependents` term now uses square-root scaling (`sqrt(dependents) × 18`) instead of `log1p(dependents) × 40`, so heavily-depended-on libraries keep scaling up instead of flattening after the first few dependents (apply retroactively with `scripts/backfill_reach.py`)
+- Project dashboard time-series charts use a time x-axis instead of a category axis, so gaps between collection dates render proportionally (weekly and release charts unchanged)
+
+### Fixed
+
+- Project dashboard hero and KPIs (reach, stars, packaging) no longer vanish on shorter time ranges when a project hasn't been scanned within the window - current stats now always reflect the latest snapshot, independent of the selected chart window
+- GitHub collection no longer crashes with `AttributeError` when the contributor stats API returns `"author": null` for deleted or anonymous accounts
+- Top navigation no longer clips the login/account control on narrow mobile screens - the wordmark collapses to the logo mark below the `sm` breakpoint
+
 ## [0.1.11] - 2026-04-12
 
 ### Changed
 
-- Release download snapshots now only collect assets from the 100 most recent releases instead of all releases, and get total release count cheaply from the Link header — reduces API calls from up to 50 paginated requests to 2
+- Release download snapshots now only collect assets from the 100 most recent releases instead of all releases, and get total release count cheaply from the Link header - reduces API calls from up to 50 paginated requests to 2
 - Daily cleanup job prunes release download snapshots older than 90 days (cumulative counters make older snapshots redundant)
 - Project collection schedules now spread across all 1,440 minute-slots per day instead of only 24 hour-slots, reducing rate-limit pressure on upstream APIs
 - Catch-up logic on startup: projects whose scheduled slot already passed today without a snapshot are queued immediately, preventing skipped days after deploys
@@ -34,7 +57,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- `/metrics` endpoint crashing with `AttributeError: 'Request' has no attribute 'scalar'` — Litestar's `before_request` hook doesn't support dependency injection, so the controller now uses a proper `@get()` handler with DI
+- `/metrics` endpoint crashing with `AttributeError: 'Request' has no attribute 'scalar'` - Litestar's `before_request` hook doesn't support dependency injection, so the controller now uses a proper `@get()` handler with DI
 
 ## [0.1.8] - 2026-04-10
 
@@ -52,7 +75,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- NuGet collector and discovery returning 404 — search API moved to azuresearch-usnc.nuget.org
+- NuGet collector and discovery returning 404 - search API moved to azuresearch-usnc.nuget.org
 
 ## [0.1.6] - 2026-04-07
 
@@ -72,9 +95,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- Package collectors (PyPI, npm, etc.) skipped entirely when GitHub token is missing — now only GitHub/traffic collectors require a token
+- Package collectors (PyPI, npm, etc.) skipped entirely when GitHub token is missing - now only GitHub/traffic collectors require a token
 - Chart dots (showSymbol) missing on issues, pull requests, and release cadence charts
-- User-Agent version hardcoded as 0.1.0 — now derived from package metadata
+- User-Agent version hardcoded as 0.1.0 - now derived from package metadata
 
 ## [0.1.5] - 2026-04-07
 

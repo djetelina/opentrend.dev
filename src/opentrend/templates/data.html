@@ -1,5 +1,7 @@
 {% extends "base.html" %}
-{% block title %}Data We Collect — opentrend.dev{% endblock %}
+{% block title %}Data We Collect | opentrend.dev{% endblock %}
+{% block canonical %}{{ site_url }}/data{% endblock %}
+{% block meta_description %}Every data source OpenTrend collects - GitHub, package registries, and 25+ OS distributions - plus the reach score formula and API limitations.{% endblock %}
 {% block content %}
 <div class="px-4 sm:px-8 lg:px-12 xl:px-16 py-8">
     <h1 class="text-3xl font-semibold text-fg-bright tracking-tight mb-2">data we collect</h1>
@@ -197,7 +199,7 @@
 + ln(1+<span class="text-accent-teal">watchers</span>)     <span class="text-fg-faint">× 20</span>
 + ln(1+<span class="text-accent-teal">sources</span>)      <span class="text-fg-faint">× 50</span>
 + ln(1+<span class="text-accent-teal">downloads</span>)    <span class="text-fg-faint">× 20</span>
-+ ln(1+<span class="text-accent-teal">dependents</span>)   <span class="text-fg-faint">× 40</span>
++ sqrt(<span class="text-accent-teal">dependents</span>)   <span class="text-fg-faint">× 18</span>
 + ln(1+<span class="text-accent-teal">views</span>)        <span class="text-fg-faint">× 15</span>
 + ln(1+<span class="text-accent-teal">clones</span>)       <span class="text-fg-faint">× 15</span></pre>
             </div>
@@ -218,59 +220,59 @@
                             <td class="py-2 pr-4 text-fg">Stars</td>
                             <td class="py-2 pr-4"><span class="text-accent-teal">&#x221A;</span></td>
                             <td class="py-2 pr-4">30</td>
-                            <td class="py-2">GitHub API <span class="text-fg-faint">— cumulative, current total</span></td>
+                            <td class="py-2">GitHub API <span class="text-fg-faint">- cumulative, current total</span></td>
                         </tr>
                         <tr class="border-b border-border-subtle/50">
                             <td class="py-2 pr-4 text-fg">Forks</td>
                             <td class="py-2 pr-4"><span class="text-accent-teal">&#x221A;</span></td>
                             <td class="py-2 pr-4">20</td>
-                            <td class="py-2">GitHub API <span class="text-fg-faint">— cumulative, current total</span></td>
+                            <td class="py-2">GitHub API <span class="text-fg-faint">- cumulative, current total</span></td>
                         </tr>
                         <tr class="border-b border-border-subtle/50">
                             <td class="py-2 pr-4 text-fg">Contributors</td>
                             <td class="py-2 pr-4"><span class="text-accent-teal">log</span></td>
                             <td class="py-2 pr-4">40</td>
-                            <td class="py-2">GitHub API <span class="text-fg-faint">— cumulative, all-time</span></td>
+                            <td class="py-2">GitHub API <span class="text-fg-faint">- cumulative, all-time</span></td>
                         </tr>
                         <tr class="border-b border-border-subtle/50">
                             <td class="py-2 pr-4 text-fg">Watchers</td>
                             <td class="py-2 pr-4"><span class="text-accent-teal">log</span></td>
                             <td class="py-2 pr-4">20</td>
-                            <td class="py-2">GitHub API <span class="text-fg-faint">— cumulative, current total</span></td>
+                            <td class="py-2">GitHub API <span class="text-fg-faint">- cumulative, current total</span></td>
                         </tr>
                         <tr class="border-b border-border-subtle/50">
                             <td class="py-2 pr-4 text-fg">Package sources</td>
                             <td class="py-2 pr-4"><span class="text-accent-teal">log</span></td>
                             <td class="py-2 pr-4">50</td>
-                            <td class="py-2">Distro &amp; registry collectors <span class="text-fg-faint">— count of sources with a published version right now</span></td>
+                            <td class="py-2">Distro &amp; registry collectors <span class="text-fg-faint">- count of sources with a published version right now</span></td>
                         </tr>
                         <tr class="border-b border-border-subtle/50">
                             <td class="py-2 pr-4 text-fg">Total downloads</td>
                             <td class="py-2 pr-4"><span class="text-accent-teal">log</span></td>
                             <td class="py-2 pr-4">20</td>
-                            <td class="py-2">PyPI, npm, Crates.io, RubyGems, Packagist, NuGet, Homebrew, Chocolatey <span class="text-fg-faint">— monthly estimate (daily &times; 30 or last-month total)</span></td>
+                            <td class="py-2">PyPI, npm, Crates.io, RubyGems, Packagist, NuGet, Homebrew, Chocolatey <span class="text-fg-faint">- monthly estimate (daily &times; 30 or last-month total)</span></td>
                         </tr>
                         <tr class="border-b border-border-subtle/50">
                             <td class="py-2 pr-4 text-fg">Total dependents</td>
-                            <td class="py-2 pr-4"><span class="text-accent-teal">log</span></td>
-                            <td class="py-2 pr-4">40</td>
-                            <td class="py-2">GitHub dependency graph <span class="text-fg-faint">— current total (fallback: npm, Crates.io, RubyGems, AUR)</span></td>
+                            <td class="py-2 pr-4"><span class="text-accent-teal">sqrt</span></td>
+                            <td class="py-2 pr-4">18</td>
+                            <td class="py-2">GitHub dependency graph <span class="text-fg-faint">- current total (fallback: npm, Crates.io, RubyGems, AUR)</span></td>
                         </tr>
                         <tr class="border-b border-border-subtle/50">
                             <td class="py-2 pr-4 text-fg">Traffic views</td>
                             <td class="py-2 pr-4"><span class="text-accent-teal">log</span></td>
                             <td class="py-2 pr-4">15</td>
-                            <td class="py-2">GitHub Traffic API <span class="text-fg-faint">— sum of last 30 days</span></td>
+                            <td class="py-2">GitHub Traffic API <span class="text-fg-faint">- sum of last 30 days</span></td>
                         </tr>
                         <tr>
                             <td class="py-2 pr-4 text-fg">Traffic clones</td>
                             <td class="py-2 pr-4"><span class="text-accent-teal">log</span></td>
                             <td class="py-2 pr-4">15</td>
-                            <td class="py-2">GitHub Traffic API <span class="text-fg-faint">— sum of last 30 days</span></td>
+                            <td class="py-2">GitHub Traffic API <span class="text-fg-faint">- sum of last 30 days</span></td>
                         </tr>
                     </tbody>
                 </table>
-                <p class="text-fg-faint text-xs mt-3">Stars and forks use square root scaling (diminishing returns at high counts). All others use log scaling. Zero inputs contribute nothing. Traffic and downloads use rolling windows, so the score can decrease when high-activity days roll off.</p>
+                <p class="text-fg-faint text-xs mt-3">Stars, forks, and dependents use square root scaling (diminishing returns at high counts). All others use log scaling. Zero inputs contribute nothing. Traffic and downloads use rolling windows, so the score can decrease when high-activity days roll off.</p>
             </div>
         </div>
     </section>

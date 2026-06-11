@@ -35,7 +35,7 @@ class NpmCollector(PackageCollector):
             resp.raise_for_status()
             info = self.parse_registry(resp.json())
 
-            # Downloads — daily, weekly, monthly (independent, fetch in parallel)
+            # Downloads - daily, weekly, monthly (independent, fetch in parallel)
             daily_resp, weekly_resp, monthly_resp = await asyncio.gather(
                 client.get(f"{NPM_API}/downloads/point/last-day/{pkg}"),
                 client.get(f"{NPM_API}/downloads/point/last-week/{pkg}"),

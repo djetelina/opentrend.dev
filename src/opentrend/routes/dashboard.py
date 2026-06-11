@@ -1,3 +1,4 @@
+import asyncio
 import json
 from datetime import date, datetime, timedelta, timezone
 
@@ -6,10 +7,11 @@ from packaging.version import InvalidVersion, Version
 from litestar import Controller, get
 from litestar.connection import Request
 from litestar.exceptions import NotAuthorizedException, NotFoundException
-from litestar.response import Redirect, Template
+from litestar.response import Redirect, Response, Template
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from opentrend import og
 from opentrend.models.project import Project
 from opentrend.models.snapshot import GithubSnapshot
 from opentrend.models.user import User
@@ -20,6 +22,7 @@ from opentrend.types import NamedSeries, ReleaseAsset, ReleaseSummary
 TIME_RANGES = {
     "30d": {"label": "30d", "days": 30, "weeks": 8},
     "90d": {"label": "90d", "days": 90, "weeks": 13},
+    "180d": {"label": "180d", "days": 180, "weeks": 26},
     "1y": {"label": "1y", "days": 365, "weeks": 52},
 }
 DEFAULT_RANGE = "30d"
@@ -325,6 +328,58 @@ def _build_traffic_context(traffic_snapshots: list, traffic_referrers: list) -> 
 class DashboardController(Controller):
     path = "/p"
 
+    @get(
+        "/{owner:str}/{repo:str}/og.png",
+        name="dashboard:og",
+        media_type="image/png",
+    )
+    async def project_og(
+        self,
+        user: User | None,
+        db_session: AsyncSession,
+        owner: str,
+        repo: str,
+    ) -> Response:
+        github_repo = f"{owner}/{repo}"
+        result = await db_session.execute(
+            select(Project).where(Project.github_repo == github_repo)
+        )
+        project = result.scalar_one_or_none()
+        if project is None:
+            raise NotFoundException("Project not found")
+        # OG cards exist only for shareable pages; never reveal private ones.
+        is_owner = user is not None and project.user_id == user.id
+        if not is_owner and not project.public:
+            raise NotFoundException("Project not found")
+
+        dashboard = DashboardService(db_session)
+        latest_gh = await dashboard.get_latest_github_snapshot(project.id)
+        latest_pkg = await dashboard.get_latest_package_snapshots(project.id)
+        matrix = DashboardService.format_packaging_matrix(
+            project.package_mappings,
+            latest_pkg,
+            latest_gh.latest_release_tag if latest_gh else None,
+        )
+        png, failed = await asyncio.to_thread(
+            og.render_or_fallback,
+            og.render_project_card,
+            label=github_repo,
+            display_name=project.display_name,
+            repo=project.github_repo,
+            reach=(latest_gh.reach_score or 0) if latest_gh else 0,
+            stars=latest_gh.stars if latest_gh else 0,
+            downloads=DashboardService.compute_total_downloads(matrix),
+            packages=sum(1 for r in matrix if r.get("version")),
+            license=latest_gh.license if latest_gh else None,
+            version=latest_gh.latest_release_tag if latest_gh else None,
+        )
+        cache = "no-store" if failed else "max-age=3600, s-maxage=3600"
+        return Response(
+            content=png,
+            media_type="image/png",
+            headers={"Cache-Control": cache},
+        )
+
     @get("/{owner:str}/{repo:str}", name="dashboard:project")
     async def project_dashboard(
         self,
@@ -360,7 +415,10 @@ class DashboardController(Controller):
 
         # Fetch data
         github_snapshots = await dashboard.get_github_snapshots(project.id, since=since)
-        latest_gh = github_snapshots[-1] if github_snapshots else None
+        # "Current" stats (KPIs, reach, packaging, deltas) always reflect the most
+        # recent snapshot, independent of the selected chart window - otherwise a
+        # project not scanned within the window loses its whole hero/KPI strip.
+        latest_gh = await dashboard.get_latest_github_snapshot(project.id)
         week_ago_gh = await dashboard.get_github_snapshot_near_date(
             project.id, datetime.now(timezone.utc).date() - timedelta(days=7)
         )
@@ -398,6 +456,20 @@ class DashboardController(Controller):
 
         next_scan_utc, next_scan_in = _compute_next_scan(project.id)
 
+        # Reach breakdown for the on-page popup - uses the same inputs as
+        # compute_reach (latest snapshot, current packages, 30d traffic).
+        total_downloads = DashboardService.compute_total_downloads(matrix)
+        since_30 = datetime.now(timezone.utc).date() - timedelta(days=30)
+        reach_views_30 = sum(
+            s.views or 0 for s in traffic_snapshots if s.date >= since_30
+        )
+        reach_clones_30 = sum(
+            s.clones or 0 for s in traffic_snapshots if s.date >= since_30
+        )
+        reach_breakdown = DashboardService.reach_breakdown(
+            latest_gh, matrix, total_downloads, reach_views_30, reach_clones_30
+        )
+
         return Template(
             template_name="projects/dashboard.html",
             context={
@@ -406,7 +478,8 @@ class DashboardController(Controller):
                 "deltas": DashboardService.compute_github_deltas(
                     latest_gh, week_ago_gh
                 ),
-                "total_downloads": DashboardService.compute_total_downloads(matrix),
+                "total_downloads": total_downloads,
+                "reach_breakdown": reach_breakdown,
                 "latest_release_tag": latest_release_tag,
                 "latest_release_ago": _format_release_ago(latest_gh),
                 "has_chart_data": len(github_snapshots) >= 1,
@@ -419,6 +492,8 @@ class DashboardController(Controller):
                 "matrix": matrix,
                 "weekly_label": f"{weekly_weeks}w",
                 "daily_label": time_range["label"],
+                "current_range": range_key,
+                "range_options": list(TIME_RANGES),
                 "user": user,
                 **gh_ctx,
                 **pkg_ctx,

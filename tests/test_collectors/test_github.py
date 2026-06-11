@@ -67,6 +67,26 @@ async def test_github_collector_parses_repo_data(repo_response: dict) -> None:
     assert data["license"] == "BSD-3-Clause"
 
 
+def test_parse_contributor_commits_handles_null_author() -> None:
+    # GitHub returns "author": null for deleted/anonymous accounts (regression).
+    stats = [
+        {"author": {"login": "owner"}, "weeks": [{"c": 5}, {"c": 3}]},
+        {"author": None, "weeks": [{"c": 9}, {"c": 1}]},
+        {"author": {"login": "ci[bot]"}, "weeks": [{"c": 100}, {"c": 100}]},
+    ]
+    owner, all_ = GithubCollector.parse_contributor_commits(stats, "owner")
+    import json
+
+    # Null-author commits count toward community; bot commits excluded.
+    assert json.loads(all_) == [14, 4]
+    assert json.loads(owner) == [5, 3]
+
+
+def test_parse_contributor_commits_empty() -> None:
+    assert GithubCollector.parse_contributor_commits(None, "owner") == (None, None)
+    assert GithubCollector.parse_contributor_commits([], "owner") == (None, None)
+
+
 @pytest.mark.asyncio
 async def test_github_collector_parses_releases(releases_response: list[dict]) -> None:
     collector = GithubCollector(token="fake-token")

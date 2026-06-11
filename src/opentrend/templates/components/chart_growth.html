@@ -4,7 +4,6 @@ document.addEventListener('DOMContentLoaded', function() {
     var chart = echarts.init(document.getElementById('chart-growth'));
     var starsData = {{ stars_series | safe }};
     var forksData = {{ forks_series | safe }};
-    var dates = starsData.map(function(d) { return d.date; });
     var f = "'IBM Plex Mono', monospace";
     chart.setOption({
         backgroundColor: 'transparent',
@@ -23,10 +22,9 @@ document.addEventListener('DOMContentLoaded', function() {
         },
         grid: { left: 48, right: 48, top: 28, bottom: 24 },
         xAxis: {
-            type: 'category',
-            data: dates,
+            type: 'time',
             axisLine: { lineStyle: { color: '#363642' } },
-            axisLabel: { color: '#9090a0', fontFamily: f, fontSize: 10 },
+            axisLabel: { color: '#9090a0', fontFamily: f, fontSize: 10, hideOverlap: true },
             axisTick: { show: false }
         },
         yAxis: [
@@ -52,7 +50,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 name: 'Stars',
                 type: 'line',
                 yAxisIndex: 0,
-                data: starsData.map(function(d) { return d.value; }),
+                data: starsData.map(function(d) { return [d.date, d.value]; }),
                 smooth: false,
                 showSymbol: starsData.length <= 30,
                 symbolSize: 3,
@@ -69,7 +67,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 name: 'Forks',
                 type: 'line',
                 yAxisIndex: 1,
-                data: forksData.map(function(d) { return d.value; }),
+                data: forksData.map(function(d) { return [d.date, d.value]; }),
                 smooth: false,
                 showSymbol: forksData.length <= 30,
                 symbolSize: 3,

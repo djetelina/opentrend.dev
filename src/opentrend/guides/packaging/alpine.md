@@ -11,7 +11,7 @@ requirements:
   - "Must have a maintainer"
 ---
 
-Alpine Linux is widely used in containers thanks to its tiny footprint and musl libc base. Packages are built with `abuild` from `APKBUILD` files — shell scripts that define sources, dependencies, and build steps. New packages start in the `testing/` repository and graduate to `community/` or `main/` after proving stability.
+Alpine Linux is widely used in containers thanks to its tiny footprint and musl libc base. Packages are built with `abuild` from `APKBUILD` files - shell scripts that define sources, dependencies, and build steps. New packages start in the `testing/` repository and graduate to `community/` or `main/` after proving stability.
 
 ## 1. Set up the build environment
 
@@ -90,10 +90,10 @@ git add testing/yourpkg/APKBUILD
 git commit -m "testing/yourpkg: new aport"
 ```
 
-Open a merge request. Alpine's CI builds the package on all supported architectures. A maintainer reviews the APKBUILD — expect feedback on things like proper use of `install`, correct `depends` vs `makedepends` separation, and inclusion of a `check()` function for tests.
+Open a merge request. Alpine's CI builds the package on all supported architectures. A maintainer reviews the APKBUILD - expect feedback on things like proper use of `install`, correct `depends` vs `makedepends` separation, and inclusion of a `check()` function for tests.
 
 ## 5. Graduate to community
 
 After your package has been in `testing/` for a release cycle with no issues, you (or a maintainer) can move it to `community/`. This makes it available in Alpine's stable releases and official Docker images.
 
-**Tip:** Run `apkbuild-lint APKBUILD` to catch style issues before submitting. Alpine is strict about security and minimal dependencies — avoid bundling or vendoring when system libraries are available.
+**Tip:** Run `apkbuild-lint APKBUILD` to catch style issues before submitting. Alpine is strict about security and minimal dependencies - avoid bundling or vendoring when system libraries are available.

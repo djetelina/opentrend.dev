@@ -11,7 +11,7 @@ requirements:
   - "Must not be pre-built proprietary binaries (use -bin suffix for binary repackaging)"
 ---
 
-The AUR is a community-driven repository for Arch Linux. Anyone can submit packages. Users install them via AUR helpers like `yay` or `paru`. Packages are defined by a `PKGBUILD` — a Bash script that tells `makepkg` how to fetch, build, and install your software.
+The AUR is a community-driven repository for Arch Linux. Anyone can submit packages. Users install them via AUR helpers like `yay` or `paru`. Packages are defined by a `PKGBUILD` - a Bash script that tells `makepkg` how to fetch, build, and install your software.
 
 ## 1. Set up an AUR account
 
@@ -62,7 +62,7 @@ package() {
 
 ## 3. Generate .SRCINFO
 
-Run `makepkg --printsrcinfo > .SRCINFO` to generate the metadata file required by the AUR. This must be committed alongside the PKGBUILD — the AUR web interface reads it to display package info.
+Run `makepkg --printsrcinfo > .SRCINFO` to generate the metadata file required by the AUR. This must be committed alongside the PKGBUILD - the AUR web interface reads it to display package info.
 
 ## 4. Push to AUR
 
@@ -88,6 +88,6 @@ When you release a new version:
 3. Regenerate `.SRCINFO`
 4. Commit and push
 
-Consider also creating a `-git` variant that builds from your main branch — this tracks the latest development version and uses `pkgver()` to auto-detect the version from git tags.
+Consider also creating a `-git` variant that builds from your main branch - this tracks the latest development version and uses `pkgver()` to auto-detect the version from git tags.
 
 **Tip:** Tools like [aurpublish](https://github.com/eli-schwartz/aurpublish) can automate publishing from a GitHub Actions workflow.

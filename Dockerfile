@@ -11,6 +11,7 @@ RUN uv sync --frozen --no-dev
 COPY alembic.ini ./
 COPY alembic/ ./alembic/
 COPY tailwind.config.js ./
+COPY scripts/ ./scripts/
 COPY src/ ./src/
 
 # Build Tailwind CSS

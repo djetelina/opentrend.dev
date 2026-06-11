@@ -11,7 +11,7 @@ requirements:
   - "No proprietary software"
 ---
 
-Void Linux uses XBPS as its package manager and `xbps-src` as the build system. Packages are defined as Bash template files in the [void-packages](https://github.com/void-linux/void-packages) repository. Void supports both glibc and musl libc, and packages must build on both. The community is selective but fair — useful, well-maintained tools are welcome.
+Void Linux uses XBPS as its package manager and `xbps-src` as the build system. Packages are defined as Bash template files in the [void-packages](https://github.com/void-linux/void-packages) repository. Void supports both glibc and musl libc, and packages must build on both. The community is selective but fair - useful, well-maintained tools are welcome.
 
 ## 1. Set up the build environment
 
@@ -44,10 +44,10 @@ checksum=abc123def456...
 
 Void provides many `build_style` options that handle language-specific builds automatically:
 
-- **go** — sets up GOPATH, runs `go build`
-- **cargo** — runs `cargo build --release`
-- **python3-pep517** — builds Python packages with PEP 517
-- **cmake** / **meson** / **gnu-configure** — for C/C++ projects
+- **go** - sets up GOPATH, runs `go build`
+- **cargo** - runs `cargo build --release`
+- **python3-pep517** - builds Python packages with PEP 517
+- **cmake** / **meson** / **gnu-configure** - for C/C++ projects
 
 For binary releases where no compilation is needed, use `build_style=void` and define `do_install()` manually:
 
@@ -90,6 +90,6 @@ Fork void-packages, commit your template, and open a PR. Follow the commit messa
 New package: yourpkg-1.2.0
 ```
 
-CI will automatically build your package on x86_64, i686, aarch64, and armv7l for both glibc and musl. All builds must succeed. Maintainers review PRs regularly — expect feedback within a week.
+CI will automatically build your package on x86_64, i686, aarch64, and armv7l for both glibc and musl. All builds must succeed. Maintainers review PRs regularly - expect feedback within a week.
 
-**Tip:** For version updates, the commit message format is `yourpkg: update to 1.3.0`. Keep the template minimal — avoid custom `do_build()` or `do_install()` overrides when a `build_style` handles things correctly.
+**Tip:** For version updates, the commit message format is `yourpkg: update to 1.3.0`. Keep the template minimal - avoid custom `do_build()` or `do_install()` overrides when a `build_style` handles things correctly.

@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 
 class DistroCollector(PackageCollector):
-    """Collector for distro packages — presence and version only."""
+    """Collector for distro packages - presence and version only."""
 
     def __init__(self, github_token: str | None = None) -> None:
         self._github_token = github_token

@@ -11,6 +11,7 @@ class Settings:
     github_client_secret: str
     debug: bool = False
     log_level: str = "INFO"
+    base_url: str = "https://opentrend.dev"
 
     @classmethod
     def from_env(cls) -> Settings:
@@ -28,4 +29,5 @@ class Settings:
             github_client_secret=require("GITHUB_CLIENT_SECRET"),
             debug=os.environ.get("DEBUG", "").lower() in ("1", "true", "yes"),
             log_level=os.environ.get("LOG_LEVEL", "INFO"),
+            base_url=os.environ.get("BASE_URL", "https://opentrend.dev").rstrip("/"),
         )

@@ -9,7 +9,7 @@ requirements:
   - "GitHub repo named homebrew-<name>"
 ---
 
-A Homebrew Tap is your own formula repository — a GitHub repo that Homebrew can install from directly. Unlike `homebrew-core`, there's no review process, no notability requirement, and you control the release cadence. Users install with `brew install you/tap/yourpkg`. This is the best option for projects that don't meet homebrew-core's strict criteria or when you want full control over distribution.
+A Homebrew Tap is your own formula repository - a GitHub repo that Homebrew can install from directly. Unlike `homebrew-core`, there's no review process, no notability requirement, and you control the release cadence. Users install with `brew install you/tap/yourpkg`. This is the best option for projects that don't meet homebrew-core's strict criteria or when you want full control over distribution.
 
 ## 1. Create the tap repository
 

@@ -133,7 +133,7 @@ def create_app(
             await asyncio.to_thread(command.upgrade, alembic_cfg, "head")
         except Exception:
             logging.getLogger(__name__).critical(
-                "Database migration failed — check DATABASE_URL and that PostgreSQL is reachable",
+                "Database migration failed - check DATABASE_URL and that PostgreSQL is reachable",
                 exc_info=True,
             )
             raise
@@ -219,4 +219,5 @@ def create_app(
     )
     app.state["session_factory"] = session_factory
     app.template_engine.engine.globals["asset_v"] = __version__
+    app.template_engine.engine.globals["site_url"] = settings.base_url
     return app

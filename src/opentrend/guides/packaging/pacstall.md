@@ -9,17 +9,17 @@ requirements:
   - "Must target Ubuntu/Debian"
 ---
 
-Pacstall is an AUR-inspired package manager for Ubuntu and Debian-based systems. Packages are defined by "pacscripts" — Bash scripts similar to PKGBUILDs. Pacstall supports multiple variants (`-deb`, `-git`, `-bin`, `-app`) and builds real `.deb` packages under the hood, integrating cleanly with APT.
+Pacstall is an AUR-inspired package manager for Ubuntu and Debian-based systems. Packages are defined by "pacscripts" - Bash scripts similar to PKGBUILDs. Pacstall supports multiple variants (`-deb`, `-git`, `-bin`, `-app`) and builds real `.deb` packages under the hood, integrating cleanly with APT.
 
 ## 1. Choose a variant
 
 Pacstall uses naming suffixes to indicate how a package is built:
 
-- **yourpkg** — builds from source release tarball
-- **yourpkg-bin** — installs a pre-built binary (fastest for users)
-- **yourpkg-git** — builds from the latest git HEAD
-- **yourpkg-deb** — repackages an existing `.deb` file
-- **yourpkg-app** — for AppImage/Flatpak/Snap repackaging
+- **yourpkg** - builds from source release tarball
+- **yourpkg-bin** - installs a pre-built binary (fastest for users)
+- **yourpkg-git** - builds from the latest git HEAD
+- **yourpkg-deb** - repackages an existing `.deb` file
+- **yourpkg-app** - for AppImage/Flatpak/Snap repackaging
 
 ## 2. Write a pacscript
 

@@ -1,3 +1,4 @@
+import asyncio
 import json
 import uuid
 
@@ -10,9 +11,12 @@ from litestar.response import Response, Template
 from sqlalchemy import desc, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from opentrend import og
+from opentrend.config import Settings
 from opentrend.models.project import PackageMapping, Project
 from opentrend.models.snapshot import GithubSnapshot
 from opentrend.models.user import User
+from opentrend.routes.guides import GUIDES_DIR
 from opentrend.services.dashboard import DashboardService
 from opentrend.services.project import ProjectService
 
@@ -25,16 +29,6 @@ def _format_number(n: int) -> str:
     return str(n)
 
 
-_ROBOTS_TXT = """\
-User-agent: *
-Allow: /$
-Allow: /about
-Allow: /data
-Allow: /guides
-Disallow: /
-"""
-
-
 class HomeController(Controller):
     path = "/"
 
@@ -42,9 +36,81 @@ class HomeController(Controller):
     async def health(self) -> dict:
         return {"status": "ok"}
 
+    @get("/og.png", name="og_default", media_type="image/png")
+    async def og_default(self) -> Response:
+        png, failed = await asyncio.to_thread(
+            og.render_or_fallback, og.render_default_card, label="default"
+        )
+        cache = "no-store" if failed else "max-age=86400, s-maxage=86400"
+        return Response(
+            content=png,
+            media_type="image/png",
+            headers={"Cache-Control": cache},
+        )
+
     @get("/robots.txt", name="robots", media_type=MediaType.TEXT)
-    async def robots(self) -> str:
-        return _ROBOTS_TXT
+    async def robots(self, settings: Settings) -> str:
+        # Public content is crawlable; owner-only CRUD and auth are not.
+        # Private project dashboards under /p/ redirect anonymous crawlers to
+        # login, so they leak nothing even though /p/ is allowed.
+        return (
+            "User-agent: *\n"
+            "Allow: /\n"
+            "Disallow: /auth/\n"
+            "Disallow: /projects\n"
+            f"\nSitemap: {settings.base_url}/sitemap.xml\n"
+        )
+
+    @get("/sitemap.xml", name="sitemap", media_type="application/xml")
+    async def sitemap(self, settings: Settings, db_session: AsyncSession) -> Response:
+        base = settings.base_url
+        # (loc, lastmod or None, priority)
+        urls: list[tuple[str, str | None, str]] = [
+            (f"{base}/", None, "1.0"),
+            (f"{base}/leaderboard", None, "0.8"),
+            (f"{base}/data", None, "0.5"),
+            (f"{base}/about", None, "0.5"),
+        ]
+        for slug in sorted(p.stem for p in GUIDES_DIR.glob("*.md")):
+            urls.append((f"{base}/guides/packaging/{slug}", None, "0.4"))
+
+        # Public project dashboards, lastmod = most recent snapshot date
+        latest_date = (
+            select(
+                GithubSnapshot.project_id,
+                func.max(GithubSnapshot.date).label("last"),
+            )
+            .group_by(GithubSnapshot.project_id)
+            .subquery()
+        )
+        stmt = (
+            select(Project.github_repo, latest_date.c.last)
+            .outerjoin(latest_date, Project.id == latest_date.c.project_id)
+            .where(Project.public.is_(True))
+            .order_by(Project.github_repo)
+        )
+        for github_repo, last in await db_session.execute(stmt):
+            lastmod = last.strftime("%Y-%m-%d") if last is not None else None
+            urls.append((f"{base}/p/{github_repo}", lastmod, "0.7"))
+
+        lines = [
+            '<?xml version="1.0" encoding="UTF-8"?>',
+            '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
+        ]
+        for loc, lastmod, priority in urls:
+            lines.append("  <url>")
+            lines.append(f"    <loc>{xml_escape(loc)}</loc>")
+            if lastmod:
+                lines.append(f"    <lastmod>{lastmod}</lastmod>")
+            lines.append(f"    <priority>{priority}</priority>")
+            lines.append("  </url>")
+        lines.append("</urlset>")
+
+        return Response(
+            content="\n".join(lines),
+            media_type="application/xml",
+            headers={"Cache-Control": "max-age=3600, s-maxage=3600"},
+        )
 
     @get(
         "/badge/{owner:str}/{repo:str}/reach.svg",

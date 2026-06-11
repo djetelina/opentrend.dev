@@ -44,9 +44,9 @@ class GithubSnapshot(Base):
     weekly_commits: Mapped[str | None] = mapped_column(Text, nullable=True)
     # Schema: list[[timestamp: int, additions: int, deletions: int]]
     weekly_code_frequency: Mapped[str | None] = mapped_column(Text, nullable=True)
-    # Schema: list[int] — commit counts per week for repo owner
+    # Schema: list[int] - commit counts per week for repo owner
     weekly_owner_commits: Mapped[str | None] = mapped_column(Text, nullable=True)
-    # Schema: list[int] — commit counts per week for all non-bot contributors
+    # Schema: list[int] - commit counts per week for all non-bot contributors
     weekly_all_commits: Mapped[str | None] = mapped_column(Text, nullable=True)
     community_health: Mapped[int | None] = mapped_column(Integer, nullable=True)
     reach_score: Mapped[int | None] = mapped_column(Integer, nullable=True)

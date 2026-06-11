@@ -1,4 +1,4 @@
-"""Initial schema — consolidated from 13 migrations
+"""Initial schema - consolidated from 13 migrations
 
 Revision ID: 0001
 Revises: (none)

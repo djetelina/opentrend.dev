@@ -13,7 +13,7 @@ WakeMeOps is an APT repository that packages popular DevOps and developer tools 
 
 ## 1. Understand the model
 
-WakeMeOps doesn't compile from source. It takes pre-built release artifacts (usually from GitHub releases) and repackages them as `.deb` files. This means your project needs to publish Linux binaries — typically `linux-amd64` and `linux-arm64` tarballs or standalone executables in GitHub releases.
+WakeMeOps doesn't compile from source. It takes pre-built release artifacts (usually from GitHub releases) and repackages them as `.deb` files. This means your project needs to publish Linux binaries - typically `linux-amd64` and `linux-arm64` tarballs or standalone executables in GitHub releases.
 
 ## 2. Write a package definition
 
@@ -91,4 +91,4 @@ curl -sSL https://raw.githubusercontent.com/upciti/wakemeops/main/assets/install
 sudo apt install yourpkg
 ```
 
-**Tip:** WakeMeOps tracks multiple versions simultaneously, so users can pin to specific versions via APT. Make sure your GitHub release naming is consistent — the version detection relies on predictable URL patterns.
+**Tip:** WakeMeOps tracks multiple versions simultaneously, so users can pin to specific versions via APT. Make sure your GitHub release naming is consistent - the version detection relies on predictable URL patterns.

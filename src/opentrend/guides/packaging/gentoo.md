@@ -11,7 +11,7 @@ requirements:
   - "Can use personal overlay for faster iteration"
 ---
 
-Gentoo is a source-based distribution where packages are built from ebuilds — Bash scripts that define how to fetch, configure, compile, and install software. Gentoo's Portage tree is one of the largest repositories available. For new packages, the easiest path is through an overlay (third-party ebuild repository), with optional promotion to the official `::gentoo` tree.
+Gentoo is a source-based distribution where packages are built from ebuilds - Bash scripts that define how to fetch, configure, compile, and install software. Gentoo's Portage tree is one of the largest repositories available. For new packages, the easiest path is through an overlay (third-party ebuild repository), with optional promotion to the official `::gentoo` tree.
 
 ## 1. Create an overlay
 
@@ -63,7 +63,7 @@ src_install() {
 
 Key concepts: `EAPI=8` is the current ebuild API version. `SLOT="0"` means only one version can be installed. `KEYWORDS` with `~` prefix means the package is in testing (unstable). `ego` is a Gentoo wrapper for `go` that sets up the environment correctly.
 
-Gentoo uses **eclasses** — shared libraries of build logic. For Go packages, inherit `go-module`:
+Gentoo uses **eclasses** - shared libraries of build logic. For Go packages, inherit `go-module`:
 
 ```bash
 EAPI=8
@@ -92,4 +92,4 @@ To get your package into the official tree, file a [package request bug](https:/
 
 Alternatively, publish your overlay on [overlays.gentoo.org](https://overlays.gentoo.org/) so users can add it via `eselect repository` and sync with `emerge --sync`.
 
-**Tip:** Use `repoman` or `pkgcheck` to validate your ebuilds before submitting. Gentoo is very strict about QA — proper metadata, correct dependencies, and working test phases (`src_test`) make the review much smoother.
+**Tip:** Use `repoman` or `pkgcheck` to validate your ebuilds before submitting. Gentoo is very strict about QA - proper metadata, correct dependencies, and working test phases (`src_test`) make the review much smoother.

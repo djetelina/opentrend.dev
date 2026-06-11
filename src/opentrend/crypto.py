@@ -29,5 +29,5 @@ def try_decrypt_token(encrypted: str | None, encryption_key: str) -> str | None:
     try:
         return decrypt_token(encrypted, encryption_key)
     except Exception:
-        logger.error("Failed to decrypt token — encryption key may have changed")
+        logger.error("Failed to decrypt token - encryption key may have changed")
         return None

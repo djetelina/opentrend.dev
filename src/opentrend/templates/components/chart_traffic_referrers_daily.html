@@ -4,7 +4,6 @@ document.addEventListener('DOMContentLoaded', function() {
     var chart = echarts.init(document.getElementById('chart-traffic-referrers-daily'));
     var allSeries = {{ referrer_daily_series | safe }};
     if (!allSeries.length) return;
-    var dates = allSeries[0].data.map(function(d) { return d.date; });
     var f = "'IBM Plex Mono', monospace";
     var colors = ['#22d3ee', '#a78bfa', '#4ade80', '#fb923c', '#f472b6', '#eab308', '#38bdf8', '#c084fc', '#34d399', '#fbbf24'];
     var series = allSeries.map(function(s, i) {
@@ -12,7 +11,7 @@ document.addEventListener('DOMContentLoaded', function() {
             name: s.name,
             type: 'bar',
             stack: 'referrers',
-            data: s.data.map(function(d) { return d.value; }),
+            data: s.data.map(function(d) { return [d.date, d.value]; }),
             itemStyle: { color: colors[i % colors.length] },
             barMaxWidth: 16
         };
@@ -34,10 +33,9 @@ document.addEventListener('DOMContentLoaded', function() {
         },
         grid: { left: 48, right: 16, top: 28, bottom: 24 },
         xAxis: {
-            type: 'category',
-            data: dates,
+            type: 'time',
             axisLine: { lineStyle: { color: '#363642' } },
-            axisLabel: { color: '#9090a0', fontFamily: f, fontSize: 10 },
+            axisLabel: { color: '#9090a0', fontFamily: f, fontSize: 10, hideOverlap: true },
             axisTick: { show: false }
         },
         yAxis: {

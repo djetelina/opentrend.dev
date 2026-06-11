@@ -4,7 +4,6 @@ document.addEventListener('DOMContentLoaded', function() {
     var chart = echarts.init(document.getElementById('chart-traffic-clones'));
     var clonesData = {{ clones_series | safe }};
     var uniqueData = {{ unique_clones_series | safe }};
-    var dates = clonesData.map(function(d) { return d.date; });
     var f = "'IBM Plex Mono', monospace";
     chart.setOption({
         backgroundColor: 'transparent',
@@ -23,10 +22,9 @@ document.addEventListener('DOMContentLoaded', function() {
         },
         grid: { left: 48, right: 48, top: 28, bottom: 24 },
         xAxis: {
-            type: 'category',
-            data: dates,
+            type: 'time',
             axisLine: { lineStyle: { color: '#363642' } },
-            axisLabel: { color: '#9090a0', fontFamily: f, fontSize: 10 },
+            axisLabel: { color: '#9090a0', fontFamily: f, fontSize: 10, hideOverlap: true },
             axisTick: { show: false }
         },
         yAxis: [
@@ -48,7 +46,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 name: 'Clones',
                 type: 'bar',
                 yAxisIndex: 0,
-                data: clonesData.map(function(d) { return d.value; }),
+                data: clonesData.map(function(d) { return [d.date, d.value]; }),
                 itemStyle: { color: '#22d3ee' },
                 barMaxWidth: 12
             },
@@ -56,7 +54,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 name: 'Unique',
                 type: 'line',
                 yAxisIndex: 1,
-                data: uniqueData.map(function(d) { return d.value; }),
+                data: uniqueData.map(function(d) { return [d.date, d.value]; }),
                 smooth: false,
                 showSymbol: uniqueData.length <= 30,
                 symbolSize: 3,

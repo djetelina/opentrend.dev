@@ -11,7 +11,7 @@ requirements:
   - "Add yourself as maintainer in maintainer-list.nix"
 ---
 
-Nixpkgs is one of the largest package repositories in existence (~100k packages). Packages are Nix expressions — functional, reproducible build recipes. The community is very welcoming to new contributors. New packages go into the `pkgs/by-name/` directory using a convention-based structure.
+Nixpkgs is one of the largest package repositories in existence (~100k packages). Packages are Nix expressions - functional, reproducible build recipes. The community is very welcoming to new contributors. New packages go into the `pkgs/by-name/` directory using a convention-based structure.
 
 ## 1. Fork nixpkgs
 
@@ -123,7 +123,7 @@ python3Packages.buildPythonApplication rec {
 }
 ```
 
-**Tip:** Use `nix-prefetch-github you yourpkg --rev v1.2.0` to get the correct `hash`, and leave `vendorHash`/`cargoHash` empty on first build — the error message will tell you the correct hash.
+**Tip:** Use `nix-prefetch-github you yourpkg --rev v1.2.0` to get the correct `hash`, and leave `vendorHash`/`cargoHash` empty on first build - the error message will tell you the correct hash.
 
 ## 3. Test it
 
@@ -139,6 +139,6 @@ nix-shell -p nixfmt-rfc-style --run 'nixfmt pkgs/by-name/yo/yourpkg/package.nix'
 
 Commit with the message format `yourpkg: init at 1.2.0` and open a PR to nixpkgs. Add yourself as a maintainer in `maintainers/maintainer-list.nix` if you're new.
 
-The nixpkgs CI (ofborg) will automatically build-test your package on Linux and macOS. Expect reviews within a few days — the community is active and helpful.
+The nixpkgs CI (ofborg) will automatically build-test your package on Linux and macOS. Expect reviews within a few days - the community is active and helpful.
 
 **Tip:** For updates, the commit message format is `yourpkg: 1.1.0 -> 1.2.0`.

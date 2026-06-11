@@ -11,7 +11,7 @@ requirements:
   - "One package per submission"
 ---
 
-SlackBuilds.org (SBo) is a community repository of build scripts for Slackware Linux. Each package consists of three files: a `.SlackBuild` script, a `.info` metadata file, and a `slack-desc` description. Packages are submitted through a web form and reviewed by maintainers. SBo aims for simplicity — scripts are straightforward Bash with minimal magic.
+SlackBuilds.org (SBo) is a community repository of build scripts for Slackware Linux. Each package consists of three files: a `.SlackBuild` script, a `.info` metadata file, and a `slack-desc` description. Packages are submitted through a web form and reviewed by maintainers. SBo aims for simplicity - scripts are straightforward Bash with minimal magic.
 
 ## 1. Create the .info file
 
@@ -34,7 +34,7 @@ If the source is the same for all architectures, leave `DOWNLOAD_x86_64` and `MD
 
 ## 2. Write the .SlackBuild script
 
-The build script follows a strict template. SBo provides a [template](https://slackbuilds.org/templates/) — start from that and customize the build section:
+The build script follows a strict template. SBo provides a [template](https://slackbuilds.org/templates/) - start from that and customize the build section:
 
 ```bash
 #!/bin/bash
